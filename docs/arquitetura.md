@@ -44,17 +44,34 @@ Restrições observadas nos servidores:
 ```
 
 - **Coletor** (um processo por operadora, mesma imagem, configurado por variável de ambiente). Serviço HTTP sem estado que faz o scraping sob demanda e devolve JSON. Pode ser replicado e reiniciado sem perda.
-- **Central**. Único dono do estado: inscrições, último snapshot por ponto, notificações já enviadas. Expõe só a API, faz proxy das buscas para o coletor certo e roda o monitor a cada 30 s.
+- **Central**. Único dono do estado: inscrições, último snapshot por ponto, notificações já enviadas. Expõe só a API, consulta todos os coletores da região de uma vez e une as respostas, e roda o monitor a cada 30 s.
 - **Front-end**. Nó próprio, em `frontend/`. Um servidor Caddy serve o SPA compilado, devolve `index.html` para qualquer rota que não seja arquivo (roteamento no navegador) e encaminha `/api/*` para a central. O PWA e a API ficam na mesma origem, o que mantém o service worker e o push funcionando sem CORS.
 - **PWA**. SPA em SvelteKit (Svelte 5, TypeScript, Tailwind) com `adapter-static`. Inclui `manifest.webmanifest` e um service worker que guarda o app em cache para o modo offline e recebe o push. Em desenvolvimento o Vite faz o papel do Caddy.
 
-A comunicação entre nós é HTTP/JSON síncrono. Se um coletor cai, a central registra o erro, marca a operadora como indisponível em `/api/operators` e tenta de novo no próximo ciclo; as outras operadoras seguem funcionando.
+A comunicação entre nós é HTTP/JSON síncrono.
+
+### Uma região por implantação
+
+As operadoras de uma mesma região se complementam. Na Baixada Santista a Piracicabana atende linhas municipais e a BR Mobilidade as intermunicipais, e os ids de ponto são compartilhados entre os dois sites (o ponto 9306 é o mesmo nos dois). Por isso o usuário nunca escolhe operadora: a central faz um scatter-gather e devolve a visão da região.
+
+- `GET /api/stops?q=` consulta todos os coletores em paralelo e une os pontos pelo id, mantendo o primeiro nome, em ordem alfabética.
+- `GET /api/stops/{stop_id}/board` une as previsões de todos os coletores, ordenadas por tempo. As linhas "em mais de 20 min" são a união sem repetição, sem as linhas que já têm previsão.
+- Os ids de linha (`idLinha`) são hashes por site e não colidem, então a união não precisa de prefixo.
+- Cada pedido tem tempo limite de 10 s por coletor.
+
+Outra região seria outra implantação, com a sua central e os seus coletores (variável `COLLECTORS`). Não existe seletor nem cadastro de regiões.
+
+### Falha parcial
+
+Se um coletor falha, a central responde 200 com o que os outros devolveram e lista as operadoras que falharam em `unavailable`. O front-end mostra um aviso discreto. Se todos falham, a resposta é 503. `GET /api/status` informa `{name, online}` de cada coletor.
+
+O monitor segue a mesma regra, com um cuidado: quando o quadro de um ponto é parcial, os veículos do coletor ausente somem dele, o que geraria falsos alertas de "sumiu". Por isso um quadro parcial só dispara alertas de "chegando" (comparado com nada) e não é guardado como snapshot anterior. Só quadros completos viram o anterior do próximo ciclo.
 
 ## Regras de notificação
 
-Uma inscrição tem operadora, ponto, linha (`idLinha`), horário aproximado e antecedência em minutos. Ela fica ativa de 30 min antes a 30 min depois do horário, no fuso `America/Sao_Paulo`.
+Uma inscrição tem ponto, linha (`idLinha`), horário aproximado e antecedência em minutos. Ela fica ativa de 30 min antes a 30 min depois do horário, no fuso `America/Sao_Paulo`.
 
-A cada ciclo, para cada ponto com inscrição ativa, a central compara o snapshot anterior com o atual:
+A cada ciclo, para cada ponto com inscrição ativa, a central compara o snapshot anterior com o atual (o quadro da região, já unido):
 
 - **Chegando**: veículo da linha com previsão menor ou igual à antecedência.
 - **Sumiu**: veículo da linha que estava no snapshot anterior com previsão acima de 3 min e não aparece no atual. Um veículo com 3 min ou menos que some provavelmente passou pelo ponto, por isso não conta.

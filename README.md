@@ -15,7 +15,7 @@ navegador ──▶ front-end ──▶ central ──▶ coletor piracicabana  
   (PWA)      (Caddy)           └────▶ coletor brmobilidadebs ──▶ site da operadora
 ```
 
-Se um coletor cai, a central marca a operadora como offline e as demais continuam funcionando.
+A central consulta todos os coletores da região de uma vez, então o usuário não escolhe operadora: pontos e linhas aparecem juntos. Se um coletor cai, a central responde com o que os outros devolveram, avisa quais falharam e o resto continua funcionando. Uma região por implantação.
 
 ## Estrutura do repositório
 
@@ -63,6 +63,21 @@ Abra http://localhost:8080 (mude com `FRONTEND_PORT`). Sobe o front-end, a centr
 
 A chave VAPID é gerada na primeira execução em `data/vapid_private.pem`.
 
+### API da central
+
+| Rota | Função |
+|---|---|
+| `GET /api/stops?q=` | Busca pontos em todos os coletores (mín. 3 letras). Devolve `{stops, unavailable}` |
+| `GET /api/stops/{stop_id}/board` | Previsões unidas de todas as operadoras, mais `unavailable` |
+| `GET /api/status` | `[{name, online}]` por coletor |
+| `GET /api/vapid-public-key` | Chave pública VAPID |
+| `POST /api/subscriptions` | Cria um alerta (ponto, linha, horário, antecedência) |
+| `GET /api/subscriptions?endpoint=` | Lista os alertas deste aparelho |
+| `DELETE /api/subscriptions/{id}?endpoint=` | Exclui um alerta |
+| `POST /api/subscriptions/{id}/test?endpoint=` | Envia uma notificação de teste |
+
+`unavailable` lista as operadoras cujo coletor falhou naquele pedido. Se todos falham, a resposta é 503.
+
 ### Testes
 
 ```sh
@@ -76,8 +91,8 @@ SvelteKit (Svelte 5, TypeScript, Tailwind CSS v4) compilado como SPA estático c
 
 | Caminho | Função |
 |---|---|
-| `src/routes/+page.svelte` | Escolha da operadora e busca de pontos |
-| `src/routes/ponto/[operator]/[stopId]` | Painel do ponto, atualizado a cada 15 s, com o formulário de alerta |
+| `src/routes/+page.svelte` | Busca de pontos na região |
+| `src/routes/ponto/[stopId]` | Painel do ponto, atualizado a cada 15 s, com o formulário de alerta |
 | `src/routes/alertas` | Alertas deste aparelho, com testar e excluir |
 | `src/lib/api.ts` | Cliente tipado da API da central |
 | `src/lib/push.ts` | Permissão, inscrição Web Push e detecção de suporte |

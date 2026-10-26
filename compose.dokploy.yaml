@@ -1,0 +1,71 @@
+# Deploy no Dokploy (Docker Compose, modo padrão: o modo Stack não constrói imagens).
+# Domínio: aba "Domains" do Dokploy, serviço "frontend", porta 80. O Traefik do Dokploy cuida do HTTPS,
+# que o Web Push exige. Variáveis opcionais na aba "Environment": VAPID_SUBJECT, MONITOR_INTERVAL_S.
+
+x-backend: &backend
+  build: ./backend
+  restart: unless-stopped
+  networks: [default]
+
+x-collector: &collector
+  <<: *backend
+  command: ["uvicorn", "vemai.collector:create_app", "--factory", "--host", "0.0.0.0", "--port", "8001"]
+  # Os dois coletores dividem o volume: cada um grava catalog-<host>.json, então os arquivos não colidem.
+  volumes:
+    - catalogos:/app/data
+  healthcheck:
+    test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=3)"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 10s
+
+services:
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    expose: ["80"]
+    # A rede padrão fica explícita: o Dokploy acrescenta a dokploy-network a este serviço ao configurar o domínio,
+    # e sem isso o Caddy perderia o caminho até a central.
+    networks: [default]
+    depends_on:
+      central: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  central:
+    <<: *backend
+    environment:
+      COLLECTORS: piracicabana=http://coletor-piracicabana:8001,brmobilidadebs=http://coletor-brmobilidadebs:8001
+      DB_PATH: /app/data/vemai.db
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+      MONITOR_INTERVAL_S: ${MONITOR_INTERVAL_S:-30}
+    # Banco dos alertas e chave VAPID: perder a chave invalida todas as inscrições de push.
+    volumes:
+      - central:/app/data
+    depends_on:
+      coletor-piracicabana: { condition: service_healthy }
+      coletor-brmobilidadebs: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/vapid-public-key', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  coletor-piracicabana:
+    <<: *collector
+    environment:
+      OPERATOR_BASE_URL: https://quantotempofalta.piracicabana.com.br
+
+  coletor-brmobilidadebs:
+    <<: *collector
+    environment:
+      OPERATOR_BASE_URL: https://quantotempofalta.brmobilidadebs.com.br
+
+volumes:
+  central:
+  catalogos:

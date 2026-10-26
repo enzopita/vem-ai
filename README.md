@@ -51,6 +51,18 @@ docker compose up --build
 
 Abra http://localhost:8080 (mude com `FRONTEND_PORT`). Sobe o front-end, a central e os dois coletores. O front-end é o [Caddy](https://caddyserver.com/) servindo `frontend/build`, devolvendo `index.html` para qualquer rota do SPA e encaminhando `/api/*` para a central, então o PWA e a API ficam na mesma origem. A central não é publicada no host. O banco e a chave VAPID ficam no volume `central-data`.
 
+### Deploy no Dokploy
+
+O arquivo `compose.dokploy.yaml` sobe o app inteiro no [Dokploy](https://dokploy.com/), sem portas publicadas no host.
+
+1. Crie um serviço **Docker Compose** apontando para este repositório, com o caminho `compose.dokploy.yaml`. Use o modo padrão: o modo Stack não constrói imagens.
+2. Na aba **Domains**, adicione o domínio no serviço `frontend`, porta `80`. O Traefik do Dokploy emite o certificado; o Web Push só funciona com HTTPS.
+3. Opcional, na aba **Environment**: `VAPID_SUBJECT` (contato enviado aos serviços de push, padrão `mailto:admin@example.com`) e `MONITOR_INTERVAL_S`.
+
+Os dados ficam em dois volumes nomeados, que entram no backup de volumes do Dokploy: `central` (banco dos alertas e chave VAPID; perder a chave invalida as inscrições de push) e `catalogos` (catálogo de pontos de cada operadora). No primeiro deploy os coletores montam o catálogo em segundo plano, em alguns minutos; até lá o mapa de pontos próximos avisa que está sendo montado.
+
+As imagens instalam as dependências antes de copiar o código e usam cache do BuildKit para o uv e o pnpm, então um deploy que só muda código reaproveita as dependências. Os serviços Python rodam sem root.
+
 ### Variáveis de ambiente
 
 | Variável | Serviço | Padrão | Descrição |

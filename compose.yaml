@@ -1,0 +1,29 @@
+services:
+  central:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      COLLECTORS: piracicabana=http://coletor-piracicabana:8001,brmobilidadebs=http://coletor-brmobilidadebs:8001
+      DB_PATH: /app/data/vemai.db
+      VAPID_SUBJECT: mailto:admin@example.com
+    volumes:
+      - central-data:/app/data
+    depends_on:
+      - coletor-piracicabana
+      - coletor-brmobilidadebs
+
+  coletor-piracicabana:
+    build: .
+    command: ["uvicorn", "vemai.collector:create_app", "--factory", "--host", "0.0.0.0", "--port", "8001"]
+    environment:
+      OPERATOR_BASE_URL: https://quantotempofalta.piracicabana.com.br
+
+  coletor-brmobilidadebs:
+    build: .
+    command: ["uvicorn", "vemai.collector:create_app", "--factory", "--host", "0.0.0.0", "--port", "8001"]
+    environment:
+      OPERATOR_BASE_URL: https://quantotempofalta.brmobilidadebs.com.br
+
+volumes:
+  central-data:

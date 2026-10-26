@@ -14,7 +14,7 @@
 	}
 	@keyframes pulse-ring {
 		0% { box-shadow: 0 0 0 0 rgb(16 185 129 / 0.55); }
-		100% { box-shadow: 0 0 0 14px rgb(16 185 129 / 0); }
+		100% { box-shadow: 0 0 0 8px rgb(16 185 129 / 0); }
 	}
 	@keyframes shimmer {
 		0%, 100% { opacity: 1; }

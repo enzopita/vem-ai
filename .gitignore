@@ -4,3 +4,10 @@ __pycache__/
 data/
 .audit/
 .pytest_cache/
+
+# Impeccable: só configuração compartilhada, brief e crítica entram no repositório
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/live/
+.impeccable/review/
+.impeccable/questions/

@@ -6,12 +6,57 @@ export interface Stop {
 export interface Line {
 	id: string;
 	label: string;
+	/** Operadora que atende a linha; define se ela é municipal ou intermunicipal. */
+	operator?: string;
+	/** Itinerário resumido, quando a operadora informa (linhas a mais de 20 min). */
+	description?: string;
 }
 
 export interface Prediction {
 	line: Line;
 	vehicle: string;
+	driver: string;
 	eta_min: number;
+}
+
+export type Direction = 'ida' | 'volta';
+export type ScheduleDay = 'uteis' | 'sabados' | 'domingos';
+
+export interface LatLng {
+	lat: number;
+	lng: number;
+}
+
+export interface LineDirection {
+	direction: Direction;
+	name: string;
+	streets: string[];
+	path: LatLng[];
+}
+
+export interface Trip {
+	departure: string;
+	arrival: string;
+}
+
+export interface DaySchedule {
+	day: ScheduleDay;
+	ida: Trip[];
+	volta: Trip[];
+}
+
+export interface LineDetail extends Line {
+	description: string;
+	directions: LineDirection[];
+	stops: (LatLng & { name: string })[];
+	schedules: DaySchedule[];
+}
+
+export interface LiveVehicle extends LatLng {
+	prefix: string;
+	driver: string;
+	direction: Direction;
+	seen_at: string;
 }
 
 export interface StopBoard {
@@ -24,8 +69,23 @@ export interface RegionBoard extends StopBoard {
 	unavailable: string[];
 }
 
+export interface LineSearch {
+	lines: Line[];
+	unavailable: string[];
+}
+
 export interface StopSearch {
 	stops: Stop[];
+	unavailable: string[];
+}
+
+export interface CatalogStop extends Stop {
+	lat: number;
+	lng: number;
+}
+
+export interface StopCatalog {
+	stops: CatalogStop[];
 	unavailable: string[];
 }
 
@@ -41,6 +101,7 @@ export interface SubscriptionIn {
 	stop_name: string;
 	line_id: string;
 	line_label: string;
+	line_operator: string;
 	time: string;
 	lead_min: number;
 }
@@ -89,8 +150,15 @@ export const api = {
 	status: () => request<CollectorStatus[]>('/api/status'),
 	searchStops: (q: string, signal?: AbortSignal) =>
 		request<StopSearch>(`/api/stops?q=${encodeURIComponent(q)}`, { signal }),
+	searchLines: (q: string, signal?: AbortSignal) =>
+		request<LineSearch>(`/api/lines?q=${encodeURIComponent(q)}`, { signal }),
+	catalog: (signal?: AbortSignal) => request<StopCatalog>('/api/stops/catalog', { signal }),
 	board: (stopId: string, signal?: AbortSignal) =>
 		request<RegionBoard>(`/api/stops/${encodeURIComponent(stopId)}/board`, { signal }),
+	line: (id: string, operator: string, signal?: AbortSignal) =>
+		request<LineDetail>(`/api/lines/${encodeURIComponent(id)}?operator=${encodeURIComponent(operator)}`, { signal }),
+	lineVehicles: (id: string, operator: string, signal?: AbortSignal) =>
+		request<LiveVehicle[]>(`/api/lines/${encodeURIComponent(id)}/vehicles?operator=${encodeURIComponent(operator)}`, { signal }),
 	vapidKey: () => request<{ key: string }>('/api/vapid-public-key'),
 	createSubscription: (body: SubscriptionIn) =>
 		request<Subscription>('/api/subscriptions', {

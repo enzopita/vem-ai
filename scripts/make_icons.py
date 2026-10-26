@@ -4,33 +4,30 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 STATIC = Path(__file__).resolve().parent.parent / "frontend" / "static"
-BLUE, WHITE = (91, 63, 224), (255, 255, 255)
-FROM, TO = (79, 70, 229), (192, 38, 211)
+INK, WHITE, GREEN = (11, 13, 18), (255, 255, 255), (60, 207, 122)
 
 
 def draw(size: int) -> Image.Image:
-    k = size / 512
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    # Desenha a 4x e reduz, para as curvas saírem suaves.
+    big = size * 4
+    k = big / 512
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    def rect(x, y, w, h, r, fill):
-        d.rounded_rectangle([x * k, y * k, (x + w) * k, (y + h) * k], radius=r * k, fill=fill)
+    def rect(x, y, w, h, r, fill=None, outline=None, width=0):
+        d.rounded_rectangle([x * k, y * k, (x + w) * k, (y + h) * k], radius=r * k, fill=fill, outline=outline, width=round(width * k))
 
     def circle(cx, cy, r, fill):
         d.ellipse([(cx - r) * k, (cy - r) * k, (cx + r) * k, (cy + r) * k], fill=fill)
 
-    gradient = Image.new("L", (size, size))
-    gradient.putdata([round((x + y) * 255 / (2 * size - 2)) for y in range(size) for x in range(size)])
-    mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, size, size], radius=96 * k, fill=255)
-    img.paste(Image.composite(Image.new("RGB", (size, size), TO), Image.new("RGB", (size, size), FROM), gradient), mask=mask)
-    rect(96, 120, 320, 240, 40, WHITE)
-    rect(128, 152, 256, 96, 16, BLUE)
-    circle(176, 392, 36, WHITE)
-    circle(336, 392, 36, WHITE)
-    rect(136, 280, 48, 24, 8, BLUE)
-    rect(328, 280, 48, 24, 8, BLUE)
-    return img
+    # O V de "Vem" descendo até o ponto verde: o ônibus chegando onde a pessoa está.
+    rect(0, 0, 512, 512, 112, fill=INK)
+    d.line([(120 * k, 128 * k), (256 * k, 360 * k), (392 * k, 128 * k)], fill=WHITE, width=round(56 * k), joint="curve")
+    for x, y in ((120, 128), (256, 360), (392, 128)):
+        circle(x, y, 28, WHITE)
+    circle(256, 392, 72, INK)
+    circle(256, 392, 52, GREEN)
+    return img.resize((size, size), Image.LANCZOS)
 
 
 for size in (192, 512):

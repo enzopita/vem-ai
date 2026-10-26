@@ -1,24 +1,87 @@
-@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource-variable/inter';
 @import 'tailwindcss';
 
+/* Padrão da categoria com contraste alto; Santos só como forma de fundo: as ondas do calçadão no cabeçalho. */
+:root {
+	--ground: #f4f5f7;
+	--surface: #ffffff;
+	--quiet: #eceef2;
+	--rule: #dde1e7;
+	--ink: #0b0d12;
+	--soft: #545d6b;
+	--accent: #0a5fc4;
+	--on-accent: #ffffff;
+	--ok: #0d7a3e;
+	--on-ok: #ffffff;
+	--ok-bg: #e2f4e8;
+	--municipal: #0f7a3a;
+	--intermunicipal: #1e3a8a;
+	--linha-outra: #5b6472;
+	--warn: #8a4b00;
+	--warn-bg: #fff4dc;
+	--danger: #b42318;
+	--danger-bg: #fde8e6;
+	--scrim: rgb(11 13 18 / 0.5);
+	--ondas: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><path transform='translate%280 -60%29' d='M0 30A15 15 0 0 1 30 30A15 15 0 0 0 60 30L60 60A15 15 0 0 1 30 60A15 15 0 0 0 0 60Z' fill='%230b0d12'/><path transform='translate%280 0%29' d='M0 30A15 15 0 0 1 30 30A15 15 0 0 0 60 30L60 60A15 15 0 0 1 30 60A15 15 0 0 0 0 60Z' fill='%230b0d12'/></svg>");
+	color-scheme: light;
+}
+
+/* O tema escuro vem do atributo que o app.html resolve antes da pintura (escolha guardada ou a do sistema). */
+:root[data-theme='dark'] {
+	--ground: #0b0d12;
+	--surface: #151922;
+	--quiet: #1d222d;
+	--rule: #2a303c;
+	--ink: #f2f4f7;
+	--soft: #a5aebc;
+	--accent: #6aa8ff;
+	--on-accent: #06101f;
+	--ok: #3ccf7a;
+	--on-ok: #04140a;
+	--ok-bg: #102a1b;
+	--municipal: #15803d;
+	--intermunicipal: #2c4fa8;
+	--linha-outra: #5b6472;
+	--warn: #f5c26b;
+	--warn-bg: #2e2208;
+	--danger: #ff9b8f;
+	--danger-bg: #341311;
+	--scrim: rgb(0 0 0 / 0.6);
+	--ondas: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><path transform='translate%280 -60%29' d='M0 30A15 15 0 0 1 30 30A15 15 0 0 0 60 30L60 60A15 15 0 0 1 30 60A15 15 0 0 0 0 60Z' fill='%23f2f4f7'/><path transform='translate%280 0%29' d='M0 30A15 15 0 0 1 30 30A15 15 0 0 0 60 30L60 60A15 15 0 0 1 30 60A15 15 0 0 0 0 60Z' fill='%23f2f4f7'/></svg>");
+	color-scheme: dark;
+}
+
+@theme inline {
+	--color-ground: var(--ground);
+	--color-surface: var(--surface);
+	--color-quiet: var(--quiet);
+	--color-rule: var(--rule);
+	--color-ink: var(--ink);
+	--color-soft: var(--soft);
+	--color-accent: var(--accent);
+	--color-on-accent: var(--on-accent);
+	--color-ok: var(--ok);
+	--color-on-ok: var(--on-ok);
+	--color-ok-bg: var(--ok-bg);
+	--color-municipal: var(--municipal);
+	--color-intermunicipal: var(--intermunicipal);
+	--color-linha-outra: var(--linha-outra);
+	--color-warn: var(--warn);
+	--color-warn-bg: var(--warn-bg);
+	--color-danger: var(--danger);
+	--color-danger-bg: var(--danger-bg);
+}
+
 @theme {
-	--font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
-	--animate-ping-soft: ping-soft 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-	--animate-pulse-ring: pulse-ring 1.6s ease-out infinite;
+	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--shadow-card: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.04);
 	--animate-shimmer: shimmer 1.4s ease-in-out infinite;
 	--animate-countdown: countdown 15s linear forwards;
 
-	@keyframes ping-soft {
-		0% { transform: scale(1); opacity: 0.55; }
-		80%, 100% { transform: scale(1.9); opacity: 0; }
-	}
-	@keyframes pulse-ring {
-		0% { box-shadow: 0 0 0 0 rgb(16 185 129 / 0.55); }
-		100% { box-shadow: 0 0 0 8px rgb(16 185 129 / 0); }
-	}
 	@keyframes shimmer {
 		0%, 100% { opacity: 1; }
-		50% { opacity: 0.45; }
+		50% { opacity: 0.5; }
 	}
 	@keyframes countdown {
 		from { transform: scaleX(0); }
@@ -28,18 +91,108 @@
 
 @layer base {
 	html {
-		color-scheme: light dark;
 		-webkit-tap-highlight-color: transparent;
 	}
 	body {
-		@apply bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+		@apply bg-ground font-sans text-ink antialiased;
+		font-feature-settings: 'tnum', 'cv11';
+	}
+	::selection {
+		background: var(--accent);
+		color: var(--on-accent);
 	}
 	:focus-visible {
-		@apply outline-2 outline-offset-2 outline-violet-500;
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	input {
+		caret-color: var(--accent);
 	}
 	button, a, input, select {
 		@apply min-h-11;
 	}
+}
+
+@layer components {
+	/* Ondas do calçadão da orla de Santos, quase transparentes, deslizando devagar por trás do cabeçalho. */
+	.calcadao {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+	}
+	.calcadao::before {
+		content: '';
+		position: absolute;
+		inset: 0 auto 0 0;
+		z-index: -1;
+		width: calc(100% + 48px);
+		background: var(--ondas) 0 0 / 48px 48px repeat;
+		opacity: 0.04;
+		pointer-events: none;
+		animation: ondas-vem 16s linear infinite;
+	}
+
+	/* Lista em painel único: linhas separadas por fio, cantos só no painel. */
+	.painel {
+		display: grid;
+		/* Sem isto a coluna cresce até o texto truncado caber inteiro. */
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1px;
+		overflow: hidden;
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-xl);
+		background: var(--rule);
+		box-shadow: var(--shadow-card);
+	}
+
+	/* Lista com rolagem própria: a altura máxima corta um item ao meio para mostrar que há mais. Sem
+	   overscroll-behavior: no fim da lista o mesmo gesto segue rolando a página, então o dedo nunca fica preso. */
+	.rolagem {
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: var(--rule) transparent;
+	}
+
+	/* Leitura antiga: tudo que veio dela fica tracejado. Tracejado não quer dizer mais nada no app. */
+	.painel.antigo,
+	.antigo {
+		border-style: dashed;
+	}
+
+	/* Folha de baixo para o alerta: alcance do polegar, foco preso pelo <dialog>. */
+	.folha {
+		margin: auto auto 0;
+		width: 100%;
+		max-width: 36rem;
+		max-height: 92dvh;
+		border: 0;
+		border-radius: 1rem 1rem 0 0;
+		background: var(--surface);
+		color: var(--ink);
+		padding: 0;
+		box-shadow: 0 -8px 32px rgb(11 13 18 / 0.18);
+	}
+	.folha[open] {
+		animation: folha-sobe 320ms var(--ease-out-expo);
+	}
+	.folha::backdrop {
+		background: var(--scrim);
+	}
+	@media (min-width: 48rem) {
+		.folha {
+			margin: auto;
+			border-radius: 1rem;
+		}
+	}
+}
+
+/* Um módulo inteiro por volta: o fim encaixa no começo e o laço não pula. */
+@keyframes ondas-vem {
+	to { transform: translateX(-48px); }
+}
+
+@keyframes folha-sobe {
+	from { transform: translateY(24px); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

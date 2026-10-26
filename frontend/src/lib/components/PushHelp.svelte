@@ -10,7 +10,7 @@
 	let { support, onrecheck }: Props = $props();
 </script>
 
-<div class="rounded-2xl bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">
+<div class="rounded-xl bg-warn-bg p-4 text-[0.9375rem] text-warn">
 	{#if support === 'needs-home-screen'}
 		<p class="font-bold">No iPhone, os avisos só chegam pelo app na Tela de Início.</p>
 		<ol class="mt-2 list-decimal space-y-1.5 pl-5">
@@ -32,7 +32,7 @@
 			<button
 				type="button"
 				onclick={onrecheck}
-				class="mt-3 rounded-xl bg-amber-900 px-4 font-semibold text-white hover:bg-amber-800 dark:bg-amber-200 dark:text-amber-950 dark:hover:bg-amber-100"
+				class="mt-3 rounded-lg bg-warn px-4 font-bold text-warn-bg hover:brightness-110"
 			>
 				Verificar de novo
 			</button>

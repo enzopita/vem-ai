@@ -5,5 +5,6 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit({ adapter: adapter({ fallback: 'index.html' }) })],
-	server: { proxy: { '/api': 'http://localhost:8000' } }
+	// O Vite recusa nomes de host desconhecidos; .ts.net libera o acesso pelo tailnet (tailscale serve).
+	server: { proxy: { '/api': 'http://localhost:8000' }, allowedHosts: ['.ts.net'] }
 });

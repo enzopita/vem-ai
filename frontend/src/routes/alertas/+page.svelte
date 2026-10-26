@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { lineLabel } from '#lib/names.ts';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fade, fly } from 'svelte/transition';
@@ -50,8 +51,18 @@
 		act(alert, async () => {
 			await api.deleteSubscription(alert);
 			alerts = alerts.filter((a) => a.id !== alert.id);
-			notify('info', 'Alerta excluído.');
+			notify('info', `Alerta da linha ${lineLabel(alert.line_label)} excluído.`, { label: 'Desfazer', run: () => void restore(alert) });
 		});
+
+	// Desfazer recria o alerta com os mesmos dados; o id muda, o resto continua igual.
+	async function restore({ id: _id, ...alert }: Subscription) {
+		try {
+			await api.createSubscription(alert);
+		} catch (err) {
+			notify('error', messageOf(err));
+		}
+		await load();
+	}
 
 	function recheck() {
 		support = pushSupport();
@@ -64,9 +75,9 @@
 <svelte:head><title>Meus alertas · Vem Aí</title></svelte:head>
 
 <div class="space-y-4 pb-4">
-	<section class="rounded-[2rem] bg-white p-5 shadow-xl shadow-indigo-900/10 dark:bg-slate-900 dark:shadow-black/30">
-		<h1 class="text-xl font-extrabold">Meus alertas</h1>
-		<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Os avisos ativos neste aparelho.</p>
+	<section class="space-y-1 px-1">
+		<h1 class="text-[1.75rem] leading-tight font-bold tracking-tight">Meus alertas</h1>
+		<p class="text-soft">Os avisos ativos neste aparelho. Cada um vigia a linha de 30 min antes a 30 min depois do horário.</p>
 	</section>
 
 	{#if support !== 'supported'}
@@ -74,22 +85,23 @@
 	{/if}
 
 	{#if loading}
-		<div class="space-y-3" aria-label="Carregando alertas">
+		<ul class="space-y-3" aria-label="Carregando alertas">
 			{#each [0, 1] as i (i)}
-				<div class="h-36 animate-shimmer rounded-3xl bg-white dark:bg-slate-900"></div>
+				<li class="h-40 animate-shimmer rounded-xl border border-rule bg-surface"></li>
 			{/each}
-		</div>
+		</ul>
 	{:else if error}
-		<div class="rounded-3xl bg-rose-50 p-4 dark:bg-rose-950/40" role="alert">
-			<p class="font-semibold text-rose-800 dark:text-rose-200">{error}</p>
-			<button type="button" onclick={load} class="mt-3 rounded-xl bg-violet-600 px-5 font-semibold text-white hover:bg-violet-700">Tentar de novo</button>
+		<div class="rounded-lg bg-danger-bg p-4 text-danger" role="alert">
+			<p class="font-bold">{error}</p>
+			<button type="button" onclick={load} class="mt-3 rounded-lg bg-danger px-5 font-bold text-danger-bg hover:brightness-110">Tentar de novo</button>
 		</div>
 	{:else if alerts.length === 0 && support === 'supported'}
-		<div class="rounded-3xl bg-white p-10 text-center dark:bg-slate-900" in:fade>
-			<p class="text-4xl" aria-hidden="true">🔔</p>
-			<p class="mt-3 text-lg font-bold">Nenhum alerta neste aparelho</p>
-			<p class="mx-auto mt-1 max-w-xs text-sm text-slate-500 dark:text-slate-400">Abra um ponto e ative um alerta para ser avisado quando o ônibus estiver chegando.</p>
-			<a href="/" class="mt-5 inline-flex items-center rounded-2xl bg-linear-to-r from-indigo-600 to-fuchsia-600 px-6 font-bold text-white shadow-lg shadow-violet-500/30">Escolher um ponto</a>
+		<div class="overflow-hidden rounded-xl border border-rule bg-surface shadow-card" in:fade>
+			<div class="p-5">
+				<p class="text-lg font-bold">Nenhum alerta neste aparelho ainda</p>
+				<p class="mt-1 text-soft">Abra o seu ponto e toque na linha que você pega. O aviso chega sozinho no horário de sempre.</p>
+				<a href="/" class="mt-4 inline-flex items-center rounded-lg bg-accent px-5 font-semibold text-on-accent hover:brightness-110">Escolher o ponto</a>
+			</div>
 		</div>
 	{:else}
 		<ul class="space-y-3">

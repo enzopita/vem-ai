@@ -76,9 +76,9 @@
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div>
 					<label for="line" class="mb-1.5 block text-sm font-bold">Linha</label>
-					<select id="line" bind:value={chosenLine} class={field}>
+					<select id="line" bind:value={() => lineId, (id) => (chosenLine = id)} class={field}>
 						{#each lines as line (line.id)}
-							<option value={line.id} selected={line.id === lineId}>{line.label}</option>
+							<option value={line.id}>{line.label}</option>
 						{/each}
 					</select>
 				</div>

@@ -17,10 +17,7 @@
 		<p class="text-sm text-slate-500 dark:text-slate-400">Veículo {prediction.vehicle}</p>
 	</div>
 	{#if arriving}
-		<span class="relative flex items-center">
-			<span class="absolute inset-0 animate-ping-soft rounded-full bg-emerald-400"></span>
-			<span class="relative rounded-full bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white">Chegando</span>
-		</span>
+		<span class="animate-pulse-ring rounded-full bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white">Chegando</span>
 	{:else}
 		<p class="text-right leading-none">
 			<span class="text-3xl font-extrabold tabular-nums">{prediction.eta_min}</span>

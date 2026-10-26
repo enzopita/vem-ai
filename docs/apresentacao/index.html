@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vem Aí — Apresentação da APS</title>
+<link rel="icon" href="assets/icon.svg">
+<style>
+@font-face { font-family: 'Inter Variable'; font-weight: 100 900; font-display: block; src: url(assets/inter-latin-wght-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Inter Variable'; font-weight: 100 900; font-display: block; src: url(assets/inter-latin-ext-wght-normal.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+/* Mesmos tokens do app (frontend/src/app.css). */
+:root {
+  --ground: #f4f5f7; --surface: #ffffff; --quiet: #eceef2; --rule: #dde1e7;
+  --ink: #0b0d12; --soft: #545d6b; --accent: #0a5fc4; --on-accent: #fff;
+  --ok: #0d7a3e; --ok-bg: #e2f4e8; --municipal: #0f7a3a; --intermunicipal: #1e3a8a;
+  --warn: #8a4b00; --warn-bg: #fff4dc; --danger: #b42318; --danger-bg: #fde8e6;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow: 0 1px 2px rgb(16 24 40 / .06), 0 1px 3px rgb(16 24 40 / .04);
+  --ondas: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><path transform='translate%280 -60%29' d='M0 30A15 15 0 0 1 30 30A15 15 0 0 0 60 30L60 60A15 15 0 0 1 30 60A15 15 0 0 0 0 60Z' fill='%230b0d12'/><path transform='translate%280 0%29' d='M0 30A15 15 0 0 1 30 30A15 15 0 0 0 60 30L60 60A15 15 0 0 1 30 60A15 15 0 0 0 0 60Z' fill='%230b0d12'/></svg>");
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #0b0d12; }
+body { font-family: 'Inter Variable', system-ui, sans-serif; color: var(--ink); font-feature-settings: 'tnum', 'cv11'; -webkit-font-smoothing: antialiased; overflow: hidden; }
+
+/* ---------- palco ---------- */
+#deck { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
+.slide { position: absolute; inset: 0; background: var(--ground); display: flex; flex-direction: column; overflow: hidden; opacity: 0; visibility: hidden; transition: opacity .45s var(--ease), visibility 0s .45s; }
+.slide.on { opacity: 1; visibility: visible; transition: opacity .45s var(--ease); }
+
+/* Cabeçalho com as ondas do calçadão, igual ao app. */
+.top { position: relative; isolation: isolate; overflow: hidden; height: 120px; flex: none; display: flex; align-items: center; gap: 24px; padding: 0 96px; background: var(--surface); border-bottom: 2px solid var(--rule); }
+.top::before { content: ''; position: absolute; inset: 0 auto 0 0; z-index: -1; width: calc(100% + 96px); background: var(--ondas) 0 0 / 96px 96px repeat; opacity: .045; animation: ondas 16s linear infinite; }
+@keyframes ondas { to { transform: translateX(-96px); } }
+.top img { width: 64px; height: 64px; }
+.top .marca { font-size: 40px; font-weight: 700; letter-spacing: -.01em; }
+.top .sec { margin-left: auto; font-size: 26px; font-weight: 600; color: var(--soft); }
+.top .num { font-size: 26px; color: var(--soft); min-width: 80px; text-align: right; }
+
+.body { flex: 1; padding: 64px 96px 72px; display: flex; flex-direction: column; min-height: 0; }
+h1 { font-size: 76px; line-height: 1.08; letter-spacing: -.02em; margin: 0 0 20px; font-weight: 750; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 16px; font-weight: 750; }
+.sub { font-size: 34px; line-height: 1.4; color: var(--soft); margin: 0 0 40px; max-width: 1500px; }
+p, li { font-size: 34px; line-height: 1.45; }
+b, strong { font-weight: 700; }
+.acc { color: var(--accent); }
+.okc { color: var(--ok); }
+.dang { color: var(--danger); }
+
+/* ---------- componentes do app ---------- */
+.card { background: var(--surface); border: 2px solid var(--rule); border-radius: 24px; box-shadow: var(--shadow); padding: 36px 40px; }
+.chip { display: inline-flex; align-items: center; justify-content: center; min-width: 112px; height: 72px; padding: 0 20px; border-radius: 14px; color: #fff; font-weight: 750; font-size: 38px; }
+.chip.mun { background: var(--municipal); } .chip.int { background: var(--intermunicipal); }
+.chip.sm { min-width: 76px; height: 50px; font-size: 26px; border-radius: 10px; }
+.pill { display: inline-block; padding: 8px 20px; border-radius: 999px; background: var(--quiet); font-size: 26px; font-weight: 600; color: var(--soft); }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 88px; padding: 0 48px; border-radius: 18px; background: var(--accent); color: #fff; font-size: 34px; font-weight: 700; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.icon { width: 88px; height: 88px; border-radius: 22px; display: grid; place-items: center; font-size: 48px; margin-bottom: 24px; }
+.card h3 { font-size: 40px; margin: 0 0 12px; line-height: 1.15; }
+.card p { margin: 0; color: var(--soft); font-size: 30px; }
+.phone { border-radius: 36px; border: 10px solid #0b0d12; overflow: hidden; background: #fff; box-shadow: 0 30px 60px rgb(11 13 18 / .18); }
+.phone img { display: block; width: 100%; }
+.tag { font-size: 24px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+.note { margin-top: auto; padding: 22px 32px; border-radius: 18px; background: var(--quiet); font-size: 30px; line-height: 1.4; }
+.note b { color: var(--accent); }
+
+.ic { display: inline-flex; width: 1em; height: 1em; vertical-align: -0.14em; }
+.ic svg { width: 100%; height: 100%; }
+.icon .ic { width: 48px; height: 48px; }
+h3 .ic.h { color: var(--accent); margin-right: 6px; }
+.phone.cut { height: 560px; }
+.tight .body { padding-top: 44px; padding-bottom: 44px; }
+.tight .sub { margin-bottom: 28px; }
+.tight .card p { font-size: 28px; }
+/* ---------- passos (fragmentos) ---------- */
+.f { opacity: 0; transform: translateY(24px); transition: opacity .5s var(--ease), transform .6s var(--ease); }
+.f.vis { opacity: 1; transform: none; }
+.f.fade { transform: none; }
+
+/* ---------- capa ---------- */
+.capa { background: var(--surface); }
+.capa::before { content: ''; position: absolute; inset: 0; background: var(--ondas) 0 0 / 120px 120px repeat; opacity: .04; animation: ondas2 24s linear infinite; width: calc(100% + 120px); }
+@keyframes ondas2 { to { transform: translateX(-120px); } }
+.capa .body { position: relative; justify-content: center; padding: 0 140px; }
+.capa .logo { display: flex; align-items: center; gap: 36px; margin-bottom: 48px; }
+.capa .logo img { width: 160px; height: 160px; }
+.capa .logo span { font-size: 132px; font-weight: 800; letter-spacing: -.03em; }
+.capa h1 { font-size: 64px; font-weight: 650; color: var(--soft); max-width: 1400px; }
+.capa .meta { margin-top: 64px; display: flex; gap: 80px; font-size: 28px; color: var(--soft); line-height: 1.6; }
+.capa .meta b { color: var(--ink); }
+
+/* ---------- antes e depois ---------- */
+.versus { display: grid; grid-template-columns: 1fr 120px 1fr; align-items: stretch; gap: 0; }
+.versus .arrow { display: grid; place-items: center; font-size: 80px; color: var(--accent); }
+.loop { display: flex; flex-direction: column; gap: 18px; margin-top: 12px; }
+.loop div { display: flex; align-items: center; gap: 20px; font-size: 32px; }
+.loop .t { font-weight: 700; width: 120px; color: var(--soft); }
+.refresh { display: inline-block; animation: gira 1.6s linear infinite; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.notif { display: flex; gap: 24px; align-items: center; background: var(--surface); border: 2px solid var(--rule); border-radius: 24px; padding: 28px 32px; box-shadow: 0 20px 40px rgb(11 13 18 / .12); }
+.notif img { width: 80px; height: 80px; }
+.notif .tt { font-size: 32px; font-weight: 700; }
+.notif .bb { font-size: 28px; color: var(--soft); }
+.slide.on .notif.pop { animation: pop 0.7s var(--ease) 0.4s both; }
+@keyframes pop { from { transform: translateY(-40px) scale(.96); opacity: 0; } }
+
+/* ---------- arquitetura ---------- */
+.arch { position: relative; display: grid; grid-template-columns: 1fr 100px 1fr 100px 1fr 100px 1.15fr; align-items: center; flex: 1; }
+.conn { display: flex; flex-direction: column; justify-content: space-around; align-self: stretch; padding: 70px 0; }
+.ln { position: relative; height: 4px; margin: 0 10px; background: var(--rule); border-radius: 2px; }
+.ln::after { content: ''; position: absolute; top: -9px; left: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px rgb(10 95 196 / .18); opacity: 0; }
+.slide.on .conn.vis .ln::after { animation: vai 2.4s var(--ease) infinite; }
+.conn .ln:nth-child(2)::after { animation-delay: .15s !important; }
+@keyframes vai { 0% { left: 0; opacity: 0; } 10% { opacity: 1; } 45% { left: calc(100% - 22px); opacity: 1; } 55% { left: calc(100% - 22px); opacity: 1; background: var(--ok); } 90% { left: 0; opacity: 1; background: var(--ok); } 100% { left: 0; opacity: 0; } }
+@media print { .ln::after { display: none; } }
+.node { position: relative; background: var(--surface); border: 3px solid var(--rule); border-radius: 26px; padding: 30px 30px; text-align: center; box-shadow: var(--shadow); }
+.node .k { font-size: 22px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+.node .n { font-size: 40px; font-weight: 750; margin: 8px 0 6px; }
+.node .d { font-size: 26px; color: var(--soft); line-height: 1.35; }
+.node.hl { border-color: var(--accent); box-shadow: 0 0 0 6px rgb(10 95 196 / .12); }
+.node.down { border-color: var(--danger); background: var(--danger-bg); }
+.col { display: flex; flex-direction: column; gap: 40px; }
+.wire { position: absolute; height: 4px; background: var(--rule); border-radius: 2px; }
+.pkt { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px rgb(10 95 196 / .18); opacity: 0; }
+
+/* ---------- linha do tempo do monitor ---------- */
+.tl { display: grid; grid-template-columns: 170px 1fr 1fr; gap: 0; font-size: 32px; border: 2px solid var(--rule); border-radius: 24px; overflow: hidden; background: var(--rule); }
+.tl > div { background: var(--surface); padding: 22px 28px; border-bottom: 2px solid var(--rule); display: flex; align-items: center; gap: 18px; }
+.tl .h { background: var(--quiet); font-weight: 700; font-size: 26px; color: var(--soft); }
+.tl .hit { background: var(--ok-bg); font-weight: 700; color: var(--ok); }
+.bar { height: 10px; border-radius: 5px; background: var(--quiet); overflow: hidden; margin-top: 18px; }
+.bar i { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+.slide.on .bar i { animation: conta 30s linear infinite; }
+@keyframes conta { to { transform: scaleX(1); } }
+
+/* ---------- tabelas simples ---------- */
+.tab { display: grid; border: 2px solid var(--rule); border-radius: 24px; overflow: hidden; background: var(--rule); gap: 2px; }
+.tab > div { background: var(--surface); padding: 20px 28px; font-size: 30px; line-height: 1.35; }
+.tab.compact > div { padding: 13px 28px; font-size: 29px; }
+.tab .h { background: var(--quiet); font-weight: 700; font-size: 24px; color: var(--soft); letter-spacing: .04em; text-transform: uppercase; }
+
+/* ---------- livro de registros ---------- */
+.book { font-family: ui-monospace, 'JetBrains Mono', Menlo, monospace; font-size: 28px; }
+.book .row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 120px; padding: 16px 24px; border-bottom: 2px solid var(--rule); align-items: center; }
+.book .row.h { font-family: 'Inter Variable', sans-serif; font-weight: 700; color: var(--soft); font-size: 24px; text-transform: uppercase; letter-spacing: .05em; background: var(--quiet); }
+.stamp { font-family: 'Inter Variable', sans-serif; font-weight: 800; font-size: 24px; padding: 6px 14px; border-radius: 10px; text-align: center; }
+.stamp.ok { background: var(--ok-bg); color: var(--ok); } .stamp.no { background: var(--danger-bg); color: var(--danger); }
+
+/* ---------- notas do apresentador ---------- */
+.notes { display: none; }
+#notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 34vh; overflow: auto; background: #151922; color: #f2f4f7; font: 18px/1.5 'Inter Variable', sans-serif; padding: 16px 24px; border-top: 3px solid var(--accent); display: none; z-index: 10; }
+#notes.show { display: block; }
+#hint { position: fixed; right: 16px; bottom: 12px; color: #a5aebc; font: 13px 'Inter Variable', sans-serif; opacity: .7; z-index: 5; }
+#progress { position: fixed; left: 0; top: 0; height: 4px; background: var(--accent); z-index: 9; transition: width .4s var(--ease); }
+
+/* ---------- impressão / PDF: um slide por página, tudo visível ---------- */
+@page { size: 1920px 1080px; margin: 0; }
+@media print {
+  html, body { background: none; overflow: visible; height: auto; }
+  #deck { position: static; transform: none !important; width: 1920px; height: auto; }
+  .slide { position: relative; width: 1920px; height: 1080px; opacity: 1 !important; visibility: visible !important; break-after: page; transition: none; }
+  .f { opacity: 1 !important; transform: none !important; transition: none; }
+  #notes, #hint, #progress { display: none !important; }
+  *, ::before, ::after { animation: none !important; }
+  .pkt { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="deck">
+
+<!-- 1 -------------------------------------------------------------------- -->
+<section class="slide capa" data-title="Capa">
+  <div class="body">
+    <div class="logo"><img src="assets/icon.svg" alt=""><span>Vem Aí</span></div>
+    <h1>Seu ônibus avisa quando está chegando.</h1>
+    <p class="sub" style="font-size:36px;margin-top:8px">Um sistema distribuído para celular, feito para quem pega ônibus na Baixada Santista.</p>
+    <div class="meta">
+      <div><b>APS (Atividades Práticas Supervisionadas)</b><br>Ciência da Computação · UNIP Santos<br>Desenvolvimento de Sistemas Distribuídos<br>Prof. Vinícius Eduardo Ferreira dos Santos Silva</div>
+      <div>Christyan Charlles · Daniele dos Santos França<br>Enzo Santos Pita · Luiz Santana de Araujo<br>Welber Willian da Silva</div>
+    </div>
+  </div>
+  <div class="notes">Abertura. "O Vem Aí é um aplicativo que avisa no seu celular quando o ônibus que você pega todo dia está chegando no ponto. Vamos mostrar o problema, como ele funciona por dentro, e por que ele é um sistema distribuído."</div>
+</section>
+
+<!-- 2 -------------------------------------------------------------------- -->
+<section class="slide" data-title="O problema">
+  <div class="body">
+    <div class="tag">O problema</div>
+    <h2>Esperar ônibus na Baixada ainda é um chute.</h2>
+    <p class="sub">As empresas já têm o site e o app <b>“Quanto Tempo Falta?”</b>, que mostram em quantos minutos cada ônibus chega no ponto. Ajuda, mas só funciona <b>quando você vai olhar</b>.</p>
+    <div class="grid3">
+      <div class="card f"><div class="icon" style="background:var(--ok-bg);color:var(--ok)"><i class="ic" data-i="check"></i></div><h3>O que já existe</h3><p>Você abre o “Quanto Tempo Falta?”, procura o ponto e vê a previsão daquele momento.</p></div>
+      <div class="card f"><div class="icon" style="background:var(--warn-bg);color:var(--warn)"><i class="ic" data-i="refresh"></i></div><h3>Você precisa ficar conferindo</h3><p>Para saber a hora de sair de casa, a pessoa abre e atualiza várias vezes enquanto se arruma.</p></div>
+      <div class="card f"><div class="icon" style="background:var(--danger-bg);color:var(--danger)"><i class="ic" data-i="eyeoff"></i></div><h3>O ônibus some sem aviso</h3><p>Se o GPS do ônibus perde o sinal, ele simplesmente desaparece da lista. E você continua no ponto esperando.</p></div>
+    </div>
+  </div>
+  <div class="notes">Reconhecer que já existe o site e o app oficiais "Quanto Tempo Falta?" das operadoras. O Vem Aí não substitui a previsão deles (ele usa os mesmos dados); ele muda o jeito de receber: em vez de você consultar, o aviso chega sozinho, e ele percebe quando o ônibus some. Avance três vezes.</div>
+</section>
+
+<!-- 3 -------------------------------------------------------------------- -->
+<section class="slide" data-title="A ideia">
+  <div class="body">
+    <div class="tag">A ideia</div>
+    <h2>Em vez de você perguntar toda hora,<br><span class="acc">o sistema pergunta por você.</span></h2>
+    <div class="versus" style="margin-top:36px">
+      <div class="card">
+        <h3 class="dang">Antes</h3>
+        <div class="loop">
+          <div><span class="t">07:05</span><span class="refresh"><i class="ic" data-i="refresh"></i></span> abre o app… 12 min</div>
+          <div><span class="t">07:07</span><span class="refresh"><i class="ic" data-i="refresh"></i></span> abre de novo… 10 min</div>
+          <div><span class="t">07:09</span><span class="refresh"><i class="ic" data-i="refresh"></i></span> e de novo… 8 min</div>
+          <div><span class="t">07:11</span><span class="refresh"><i class="ic" data-i="refresh"></i></span> sumiu?!</div>
+        </div>
+      </div>
+      <div class="arrow f fade">→</div>
+      <div class="card f fade" style="display:flex;flex-direction:column;gap:26px">
+        <h3 class="okc">Com o Vem Aí</h3>
+        <p style="color:var(--ink)">Você cadastra <b>uma vez só</b> o seu ponto, a sua linha, o horário em que costuma pegar o ônibus e com quantos minutos de antecedência quer ser avisado.</p>
+        <div class="notif pop"><img src="assets/icon.svg" alt=""><div><div class="tt">Linha 7 a caminho</div><div class="bb">O veículo 1234 chega em 5 min ao seu ponto.</div></div></div>
+        <p style="color:var(--soft);font-size:28px">A notificação chega com o app fechado, até com a tela bloqueada.</p>
+      </div>
+    </div>
+  </div>
+  <div class="notes">Essa é a frase principal da apresentação: o sistema pergunta pelo usuário. O passageiro configura uma vez e esquece.</div>
+</section>
+
+<!-- 4 -------------------------------------------------------------------- -->
+<section class="slide" data-title="Como se usa">
+  <div class="body">
+    <div class="tag">Como se usa</div>
+    <h2>Configura em três passos. O resto é automático.</h2>
+    <div class="grid4" style="margin-top:20px;align-items:start">
+      <div class="f"><div class="phone cut"><img src="assets/02-proximos.png" alt="Pontos próximos"></div><p style="font-size:28px;margin-top:22px"><b>1.</b> Acha o ponto: pelo nome da rua ou pelo mapa.</p></div>
+      <div class="f"><div class="phone cut"><img src="assets/04-ponto.png" alt="Painel do ponto"></div><p style="font-size:28px;margin-top:22px"><b>2.</b> Vê os ônibus que estão vindo, das duas empresas juntas.</p></div>
+      <div class="f"><div class="phone cut"><img src="assets/06-alerta.png" style="margin-top:-150px" alt="Criar alerta"></div><p style="font-size:28px;margin-top:22px"><b>3.</b> Toca no sino e escolhe horário e antecedência.</p></div>
+      <div class="f"><div class="phone cut" style="background:var(--ground);display:flex;align-items:center;padding:24px"><div class="notif" style="padding:18px"><img src="assets/icon.svg" alt="" style="width:56px;height:56px"><div><div class="tt" style="font-size:24px">Linha 04 a caminho</div><div class="bb" style="font-size:20px">Chega em 10 min ao ponto 9306.</div></div></div></div><p style="font-size:28px;margin-top:22px"><b>4.</b> Todo dia, nesse horário, o aviso chega sozinho.</p></div>
+    </div>
+  </div>
+  <div class="notes">Telas reais da versão de produção (vemai.enzopita.com). Os nomes dos motoristas estão borrados de propósito. Sem login: o alerta fica ligado ao celular.</div>
+</section>
+
+<!-- 5 -------------------------------------------------------------------- -->
+<section class="slide" data-title="Sistema distribuído">
+  <div class="body">
+    <div class="tag">Conceito da disciplina</div>
+    <h2>O que é um sistema distribuído?</h2>
+    <p class="sub">São <b>vários programas separados</b>, rodando em lugares diferentes, que <b>conversam por mensagens</b> e, para quem usa, <b>parecem um só</b>.</p>
+    <div class="grid2" style="align-items:stretch">
+      <div class="card f">
+        <h3><i class="ic h" data-i="food"></i> Pense num restaurante</h3>
+        <p style="color:var(--ink);font-size:31px;line-height:1.6">O <b>garçom</b> atende você.<br>O <b>gerente</b> anota e organiza os pedidos.<br>Cada <b>cozinheiro</b> cuida de uma parte.<br>Você só vê o prato chegar. Não precisa saber quem fez o quê.</p>
+      </div>
+      <div class="card f">
+        <h3><i class="ic h" data-i="bus"></i> No Vem Aí é igual</h3>
+        <p style="color:var(--ink);font-size:31px;line-height:1.6"><b>Front-end</b> (a porta de entrada) = o garçom: entrega o app.<br><b>Central</b> = o gerente: junta tudo e guarda os alertas.<br><b>Coletores</b> = os cozinheiros: um para cada empresa de ônibus.<br>O passageiro só vê “os ônibus da região”.</p>
+      </div>
+    </div>
+  </div>
+  <div class="notes">Definição de Tanenbaum: computadores independentes que parecem um sistema único. Usar a analogia do restaurante para quem não é da área.</div>
+</section>
+
+<!-- 6 -------------------------------------------------------------------- -->
+<section class="slide tight" data-title="As peças" id="s-arch">
+  <div class="body">
+    <div class="tag">Arquitetura</div>
+    <h2>As quatro partes do sistema</h2>
+    <p class="sub" style="margin-bottom:0">Cada parte é um <b>nó</b>: um programa rodando separado, na sua própria “caixinha” (um <b>contêiner</b> Docker).</p>
+    <div class="arch" id="arch">
+      <div class="node f" id="n-cel"><div class="k">Seu celular</div><div class="n">App</div><div class="d">As telas e quem<br>recebe os avisos</div></div>
+      <div class="conn f fade"><div class="ln"></div></div>
+      <div class="node f" id="n-fe"><div class="k">Nó 1</div><div class="n">Front-end</div><div class="d">Entrega o app e<br>repassa os pedidos</div></div>
+      <div class="conn f fade"><div class="ln"></div></div>
+      <div class="node f" id="n-ce"><div class="k">Nó 2</div><div class="n">Central</div><div class="d">Junta as respostas,<br>guarda os alertas<br>e manda os avisos</div></div>
+      <div class="conn f fade"><div class="ln"></div><div class="ln"></div></div>
+      <div class="col">
+        <div class="node f" id="n-k1"><div class="k">Nó 3</div><div class="n">Coletor <span class="chip sm mun" style="vertical-align:middle">Pira</span></div><div class="d">Lê o site da empresa<br>Piracicabana</div></div>
+        <div class="node f" id="n-k2"><div class="k">Nó 4</div><div class="n">Coletor <span class="chip sm int" style="vertical-align:middle">BR</span></div><div class="d">Lê o site da empresa<br>BR Mobilidade</div></div>
+      </div>
+    </div>
+    <div class="note f">Todos conversam do mesmo jeito: um <b>pedido pela internet</b> (HTTP) indo e uma <b>resposta organizada</b> (JSON) voltando. Só a Central guarda informação importante: os Coletores podem ser desligados e religados sem perder nada.</div>
+  </div>
+  <div class="notes">Mostrar cada peça avançando. As bolinhas são as mensagens: azul indo (pedido), verde voltando (resposta). Cada peça é um contêiner Docker separado: dá para desligar uma sem desligar as outras.</div>
+</section>
+
+<!-- 7 -------------------------------------------------------------------- -->
+<section class="slide" data-title="Perguntar aos dois" id="s-scatter">
+  <div class="body">
+    <div class="tag">Por dentro · Buscar um ponto</div>
+    <h2>A Central pergunta para os dois <span class="acc">ao mesmo tempo</span></h2>
+    <p class="sub">Ela manda a mesma pergunta para os dois Coletores e junta as respostas. Na disciplina, isso se chama <b>scatter-gather</b> (espalhar e juntar).</p>
+    <div class="grid2" style="flex:1;align-items:center;gap:72px">
+      <div>
+        <div class="card" style="padding:28px 36px">
+          <div style="font-size:26px;color:var(--soft);font-weight:700;margin-bottom:14px">UM DE CADA VEZ</div>
+          <div style="display:flex;gap:8px;align-items:center;height:56px"><div class="race seq1" style="background:var(--municipal)">Piracicabana 1 s</div><div class="race seq2" style="background:var(--intermunicipal)">BR Mobilidade 1 s</div></div>
+          <div style="font-size:30px;margin-top:12px">Total: <b>2 segundos</b></div>
+        </div>
+        <div class="card f" style="padding:28px 36px;margin-top:28px;border-color:var(--accent)">
+          <div style="font-size:26px;color:var(--accent);font-weight:700;margin-bottom:14px">OS DOIS JUNTOS (O QUE O VEM AÍ FAZ)</div>
+          <div class="race par1" style="background:var(--municipal);margin-bottom:8px">Piracicabana 1 s</div>
+          <div class="race par2" style="background:var(--intermunicipal)">BR Mobilidade 1 s</div>
+          <div style="font-size:30px;margin-top:12px">Total: <b>1 segundo</b>, o tempo do mais lento.</div>
+        </div>
+      </div>
+      <div class="card f" style="font-size:31px;line-height:1.5">
+        <h3>Depois de juntar, a Central:</h3>
+        <p style="color:var(--ink)"><i class="ic okc" data-i="check"></i> tira os pontos repetidos (o ponto 9306 existe nos dois sites);</p>
+        <p style="color:var(--ink)"><i class="ic okc" data-i="check"></i> ordena os ônibus por quem chega primeiro;</p>
+        <p style="color:var(--ink)"><i class="ic okc" data-i="check"></i> marca de qual empresa é cada linha: <span class="chip sm mun">04</span> verde é municipal, <span class="chip sm int">957</span> azul é intermunicipal.</p>
+        <p style="color:var(--soft);font-size:27px">Municipal = dentro da cidade. Intermunicipal = entre cidades.</p>
+      </div>
+    </div>
+  </div>
+  <style>
+    .race { height: 56px; border-radius: 12px; color: #fff; font-size: 24px; font-weight: 700; display: flex; align-items: center; padding: 0 18px; white-space: nowrap; overflow: hidden; width: 0; }
+    .seq1, .seq2 { width: 0; } .par1, .par2 { width: 0; }
+    .slide.on .seq1 { animation: corre 1s linear .3s forwards; }
+    .slide.on .seq2 { animation: corre 1s linear 1.3s forwards; }
+    .slide.on .f.vis .par1, .slide.on .f.vis .par2 { animation: corre2 1s linear .3s forwards; }
+    @keyframes corre { to { width: calc(50% - 4px); } }
+    @keyframes corre2 { to { width: 50%; } }
+    @media print { .race { width: calc(50% - 4px) !important; } }
+  </style>
+  <div class="notes">A barra de cima mostra perguntar um de cada vez; a de baixo, perguntar os dois juntos. Em Python isso é o asyncio.gather. Cada coletor tem 10 segundos para responder; quem não responder fica de fora (próximo slide sobre falhas).</div>
+</section>
+
+<!-- 8 -------------------------------------------------------------------- -->
+<section class="slide" data-title="Ler o site">
+  <div class="body">
+    <div class="tag">Por dentro · De onde vêm os dados</div>
+    <h2>As empresas não entregam os dados prontos. O Coletor “lê” o site.</h2>
+    <p class="sub">O Coletor abre a página como um navegador abriria e copia os números que aparecem nela. Isso se chama <b>web scraping</b>.</p>
+    <div style="display:grid;grid-template-columns:1fr 90px 1fr 90px 1fr;align-items:center;gap:0;margin-top:10px">
+      <div class="card f"><div class="tag" style="color:var(--soft)">A página mostra</div><div class="tab" style="grid-template-columns:auto auto auto;margin-top:6px"><div class="h">Linha</div><div class="h">Ônibus</div><div class="h">Previsão</div><div>04</div><div>4914</div><div>9 minutos</div></div><p style="font-size:24px;color:var(--soft);margin:14px 0 0">feita para pessoas lerem</p></div>
+      <div class="f" style="text-align:center;font-size:64px;color:var(--accent)">→</div>
+      <div class="card f"><div class="tag" style="color:var(--soft)">O Coletor entende</div><p style="font-size:30px;margin:0">Linha <b>04</b><br>Ônibus <b>4914</b><br>Chega em <b>9 min</b><br><span style="color:var(--soft)">“CHEGANDO!” vira 0</span></p></div>
+      <div class="f" style="text-align:center;font-size:64px;color:var(--accent)">→</div>
+      <div class="card f"><div class="tag" style="color:var(--soft)">E entrega organizado</div><p style="font-size:30px;margin:0;line-height:1.6">linha: <b>04</b><br>ônibus: <b>4914</b><br>minutos: <b>9</b></p><p style="font-size:24px;color:var(--soft);margin:14px 0 0">no formato JSON, feito para programas lerem</p></div>
+    </div>
+    <div class="note f">Os sites das duas empresas são <b>iguais por dentro</b>, então é <b>um programa só</b>, rodando duas vezes. Guardamos cópias reais das páginas para testar: se o site mudar, os testes avisam.</div>
+  </div>
+  <div class="notes">Sem User-Agent de navegador o site responde 403 (proibido). Previsão com ônibus identificado só até 20 min. O JSON acima está simplificado.</div>
+</section>
+
+<!-- 9 -------------------------------------------------------------------- -->
+<section class="slide tight" data-title="Criar alerta">
+  <div class="body">
+    <div class="tag">Por dentro · Criar um alerta</div>
+    <h2>Como o servidor acha o seu celular?</h2>
+    <p class="sub">Sem login e sem cadastro. Quem resolve é o <b>Web Push</b>, um recurso que todo navegador tem para receber avisos.</p>
+    <div class="grid4" style="align-items:stretch">
+      <div class="card f"><div class="icon" style="background:var(--quiet)"><i class="ic" data-i="bell"></i></div><h3>1. Você permite</h3><p>O navegador pergunta: “Permitir notificações?”</p></div>
+      <div class="card f"><div class="icon" style="background:var(--quiet)"><i class="ic" data-i="mail"></i></div><h3>2. Ganha uma “caixa postal”</h3><p>O Google, a Mozilla ou a Apple criam um endereço só do seu celular.</p></div>
+      <div class="card f"><div class="icon" style="background:var(--quiet)"><i class="ic" data-i="db"></i></div><h3>3. A Central guarda</h3><p>A Central anota ponto, linha, horário e esse endereço.</p></div>
+      <div class="card f"><div class="icon" style="background:var(--ok-bg);color:var(--ok)"><i class="ic" data-i="lock"></i></div><h3>4. Aviso assinado</h3><p>Na hora certa, a Central manda o aviso para essa caixa postal, assinado para provar que veio do Vem Aí.</p></div>
+    </div>
+    <div class="note f">A “caixa postal” <b>é</b> a identidade do aparelho: sem conta, sem senha, sem e-mail. Menos dados pessoais guardados, como pede a lei de proteção de dados (LGPD).</div>
+  </div>
+  <div class="notes">Comparar o endpoint a uma caixa postal: quem tem o endereço consegue mandar carta. O conteúdo vai criptografado; nem o Google consegue ler o texto do aviso.</div>
+</section>
+
+<!-- 10 ------------------------------------------------------------------- -->
+<section class="slide" data-title="O vigia">
+  <div class="body">
+    <div class="tag">Por dentro · O coração do sistema</div>
+    <h2>O Vigia: olha o seu ponto a cada 30 segundos</h2>
+    <div class="grid2" style="grid-template-columns:1fr 1.25fr;gap:56px;margin-top:16px">
+      <div>
+        <p style="margin-top:0">Exemplo: alerta no ponto <b>9306</b>, linha <span class="chip sm mun">7</span>, às <b>7h30</b>, avisar com <b>5 min</b>.</p>
+        <p>O vigia só trabalha de <b>7h00 às 8h00</b> (meia hora antes e depois). Fora disso, não gasta nada.</p>
+        <div class="card" style="padding:24px 30px">
+          <div style="font-size:26px;color:var(--soft);font-weight:700">PRÓXIMA OLHADA EM…</div>
+          <div class="bar"><i></i></div>
+        </div>
+      </div>
+      <div class="tl">
+        <div class="h">Hora</div><div class="h">O site mostra</div><div class="h">O Vem Aí faz</div>
+        <div>06:50</div><div>ônibus 1234 a 12 min</div><div style="color:var(--soft)">nada (ainda não é hora)</div>
+        <div>07:10</div><div>ônibus 1234 a 12 min</div><div>ainda longe: só anota</div>
+        <div>07:10:30</div><div>ônibus 1234 a 8 min</div><div>ainda longe: só anota</div>
+        <div class="hit">07:11</div><div class="hit">ônibus 1234 a 5 min</div><div class="hit"><i class="ic" data-i="bell"></i> “Linha 7 chega em 5 min”</div>
+        <div>07:11:30</div><div>ônibus 1234 a 4 min</div><div style="color:var(--soft)">nada: já avisou este ônibus hoje</div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">A tabela aparece inteira. A barra azul mostra o ciclo de 30 segundos. Se vários alertas usam o mesmo ponto, o ponto é consultado uma vez só por ciclo.</div>
+</section>
+
+<!-- 11 ------------------------------------------------------------------- -->
+<section class="slide" data-title="Sumiu">
+  <div class="body">
+    <div class="tag">O diferencial</div>
+    <h2>E quando o ônibus <span class="dang">some</span> do rastreamento?</h2>
+    <p class="sub">O Vigia compara o que viu agora com o que viu <b>30 segundos atrás</b>.</p>
+    <div class="grid3" style="align-items:stretch">
+      <div class="card f"><div class="pill">30 s atrás</div><p style="color:var(--ink);font-size:34px;margin-top:22px">Ônibus 1234<br>a <b>8 min</b> do ponto</p></div>
+      <div class="card f"><div class="pill">Agora</div><p style="color:var(--ink);font-size:34px;margin-top:22px">Ônibus 1234…<br><b class="dang">não está mais na lista</b></p></div>
+      <div class="card f" style="border-color:var(--danger)"><div class="notif" style="box-shadow:none;border:0;padding:0"><img src="assets/icon.svg" alt="" style="width:64px;height:64px"><div><div class="tt">Linha 7 sumiu do rastreamento</div><div class="bb">Provável perda de sinal de GPS. Última previsão: 8 min.</div></div></div></div>
+    </div>
+    <div class="note f">E se ele estava a <b>3 min ou menos</b>? Aí provavelmente <b>já passou</b> pelo ponto, então <b>não</b> avisamos. Esse limite evita alarme falso.</div>
+  </div>
+  <div class="notes">O "Quanto Tempo Falta?" não faz isso: o ônibus some da lista e ninguém fica sabendo. Na disciplina, isso é detecção de falha: decidir, sem certeza, que algo parou de responder.</div>
+</section>
+
+<!-- 12 ------------------------------------------------------------------- -->
+<section class="slide" data-title="Nunca duas vezes">
+  <div class="body">
+    <div class="tag">Conceito da disciplina · Idempotência</div>
+    <h2>Por que o aviso nunca chega repetido</h2>
+    <p class="sub">Antes de mandar, a Central <b>anota num caderno</b> qual aviso vai mandar. Se a anotação já existe, ela não manda de novo.</p>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="book">
+        <div class="row h"><span>Alerta</span><span>Ônibus</span><span>Tipo</span><span>Dia</span><span>Envia?</span></div>
+        <div class="row"><span>Ana, 7h30</span><span>1234</span><span>chegando</span><span>26/10</span><span class="stamp ok">SIM</span></div>
+        <div class="row"><span>Ana, 7h30</span><span>1234</span><span>chegando</span><span>26/10</span><span class="stamp no">JÁ FOI</span></div>
+        <div class="row" style="border-bottom:0"><span>Ana, 7h30</span><span>1234</span><span>chegando</span><span>27/10</span><span class="stamp ok">SIM</span></div>
+      </div>
+    </div>
+    <div class="note f">O próprio banco de dados <b>não aceita duas linhas iguais</b>. Então, mesmo se o servidor reiniciar e repetir o trabalho, ninguém recebe dois avisos. Repetir e dar o mesmo resultado tem nome: <b>idempotência</b>.</div>
+  </div>
+  <div class="notes">Comando SQL: INSERT OR IGNORE na tabela notifications, com UNIQUE (alerta, veículo, tipo, dia). Se inseriu, envia; se ignorou, já tinha enviado.</div>
+</section>
+
+<!-- 13 ------------------------------------------------------------------- -->
+<section class="slide" data-title="Quando algo cai" id="s-falha">
+  <div class="body">
+    <div class="tag">Conceito da disciplina · Tolerância a falhas</div>
+    <h2>Se uma empresa sai do ar, o app <span class="okc">continua</span></h2>
+    <div class="grid2" style="grid-template-columns:1.1fr 1fr;gap:64px;flex:1;align-items:center">
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <div class="node hl" style="text-align:left"><div class="k">Central</div><div class="d" style="font-size:30px;color:var(--ink)">Espera no máximo <b>10 segundos</b> por cada Coletor. Quem não responder fica de fora.</div></div>
+        <div class="grid2" style="gap:28px">
+          <div class="node"><div class="n" style="font-size:32px">Coletor <span class="chip sm mun">Pira</span></div><div class="d"><i class="ic okc" data-i="check"></i> respondeu</div></div>
+          <div class="node f fade" id="k2down"><div class="n" style="font-size:32px">Coletor <span class="chip sm int">BR</span></div><div class="d"><i class="ic dang" data-i="x"></i> não respondeu</div></div>
+        </div>
+      </div>
+      <div class="tab f" style="grid-template-columns:1fr 1.2fr">
+        <div class="h">Situação</div><div class="h">O que você vê</div>
+        <div>Os dois no ar</div><div>Tudo normal</div>
+        <div><b>Um</b> fora</div><div>Os ônibus do outro + um aviso: <span style="color:var(--warn);font-weight:700">“BR Mobilidade fora do ar”</span></div>
+        <div>Os dois fora</div><div>Mensagem de erro</div>
+        <div>Celular sem internet</div><div>O app abre, sem previsões</div>
+      </div>
+    </div>
+    <div class="note f">Cuidado extra: se a BR cai, os ônibus dela “somem” da lista. O Vigia percebe que <b>faltou a resposta de uma empresa</b> e não manda o falso aviso de “sumiu”.</div>
+  </div>
+  <style>#s-falha #k2down.vis { border-color: var(--danger); background: var(--danger-bg); }</style>
+  <div class="notes">DEMO AO VIVO: rodar "docker compose stop coletor-brmobilidadebs", recarregar o app e mostrar o aviso. Depois "docker compose start coletor-brmobilidadebs".</div>
+</section>
+
+<!-- 14 ------------------------------------------------------------------- -->
+<section class="slide" data-title="Conceitos">
+  <div class="body">
+    <div class="tag">Para a disciplina</div>
+    <h2>Onde cada conceito aparece</h2>
+    <div class="tab compact" style="grid-template-columns:0.9fr 1.6fr;margin-top:4px">
+      <div class="h">Conceito</div><div class="h">No Vem Aí</div>
+      <div><b>Processos independentes</b></div><div>4 programas, cada um no seu contêiner</div>
+      <div><b>Troca de mensagens</b></div><div>Todos conversam por HTTP com JSON</div>
+      <div><b>Transparência</b></div><div>O passageiro vê “a região”, não duas empresas</div>
+      <div><b>Scatter-gather</b></div><div>A Central pergunta aos Coletores ao mesmo tempo</div>
+      <div><b>Detecção de falha</b></div><div>Espera máxima de 10 s e a regra do “sumiu”</div>
+      <div><b>Tolerância a falhas</b></div><div>Uma empresa fora não derruba o app</div>
+      <div><b>Idempotência</b></div><div>O caderno de anotações impede aviso repetido</div>
+      <div><b>Comunicação servidor → cliente</b></div><div>Web Push chega com o app fechado</div>
+    </div>
+  </div>
+  <div class="notes">Slide de fechamento técnico. Se o tempo estiver curto, pular direto para este.</div>
+</section>
+
+<!-- 15 ------------------------------------------------------------------- -->
+<section class="slide" data-title="Tecnologias">
+  <div class="body">
+    <div class="tag">Ferramentas</div>
+    <h2>O que usamos, e por quê</h2>
+    <div class="grid3" style="margin-top:12px">
+      <div class="card f"><h3>Python + FastAPI</h3><p>A linguagem e a ferramenta da Central e dos Coletores.</p></div>
+      <div class="card f"><h3>Beautiful Soup</h3><p>Ajuda o Coletor a ler as páginas das empresas.</p></div>
+      <div class="card f"><h3>SQLite</h3><p>Onde os alertas ficam guardados.</p></div>
+      <div class="card f"><h3>PWA</h3><p>App que se instala pelo navegador, sem loja. Funciona em Android e iPhone.</p></div>
+      <div class="card f"><h3>Web Push</h3><p>O jeito de mandar o aviso para o celular.</p></div>
+      <div class="card f"><h3>Docker + Dokploy</h3><p>Põe cada parte na sua caixinha e publica na internet com cadeado (HTTPS).</p></div>
+    </div>
+  </div>
+  <div class="notes">Ferramentas abertas e gratuitas. O sistema tem 79 testes automatizados (pytest).</div>
+</section>
+
+<!-- 16 ------------------------------------------------------------------- -->
+<section class="slide" data-title="Limites">
+  <div class="body">
+    <div class="tag">Sendo honestos</div>
+    <h2>Limitações e próximos passos</h2>
+    <div class="grid2" style="margin-top:12px;align-items:stretch">
+      <div class="card f">
+        <h3><i class="ic h" data-i="warn"></i> Limitações</h3>
+        <ul style="margin:12px 0 0;padding-left:36px;color:var(--ink)">
+          <li>Se a empresa mudar o site, o Coletor precisa ser ajustado.</li>
+          <li>A Central é uma só: se ela cair, os avisos param.</li>
+          <li>“Sumiu” é um palpite: o ônibus pode sair da lista por outro motivo.</li>
+          <li>A previsão é a da própria empresa.</li>
+        </ul>
+      </div>
+      <div class="card f">
+        <h3><i class="ic h" data-i="up"></i> Próximos passos</h3>
+        <ul style="margin:12px 0 0;padding-left:36px;color:var(--ink)">
+          <li>Mostrar se a linha costuma atrasar (histórico).</li>
+          <li>Ter mais de uma Central, para os avisos não pararem se uma cair.</li>
+          <li>Medir quantos “sumiu” foram alarme falso.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="notes">Mostrar que o grupo conhece os pontos fracos e sabe como evoluir.</div>
+</section>
+
+<!-- 17 ------------------------------------------------------------------- -->
+<section class="slide capa" data-title="Obrigado">
+  <div class="body">
+    <div class="logo" style="margin-bottom:24px"><img src="assets/icon.svg" alt=""><span>Obrigado!</span></div>
+    <p class="sub" style="font-size:40px;margin-bottom:56px">Perguntas? Testem no celular agora:</p>
+    <div style="display:flex;gap:96px">
+      <div style="text-align:center"><img src="assets/qr-app.svg" alt="QR code do app" style="width:300px;height:300px;background:#fff;padding:16px;border-radius:20px;border:2px solid var(--rule)"><p style="font-size:30px;margin:16px 0 0"><b>vemai.enzopita.com</b><br><span style="color:var(--soft)">o app</span></p></div>
+      <div style="text-align:center"><img src="assets/qr-repo.svg" alt="QR code do repositório" style="width:300px;height:300px;background:#fff;padding:16px;border-radius:20px;border:2px solid var(--rule)"><p style="font-size:30px;margin:16px 0 0"><b>github.com/enzopita/vem-ai</b><br><span style="color:var(--soft)">o código</span></p></div>
+    </div>
+  </div>
+  <div class="notes">No iPhone, para receber o aviso é preciso "Adicionar à Tela de Início" e abrir por lá.</div>
+</section>
+
+</div>
+<div id="notes"></div>
+<div id="hint">← → navegar · N notas · F tela cheia</div>
+<script>
+(() => {
+  const P = {
+    refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+    eyeoff: '<path d="M9.9 9.9a3 3 0 1 0 4.2 4.2"/><path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13 13 0 0 1-1.7 2.7"/><path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M2 2l20 20"/>',
+    phone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-9 5.7a2 2 0 0 1-2 0L2 7"/>',
+    db: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+    lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    warn: '<path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/>',
+    up: '<path d="M22 7 13.5 15.5l-5-5L2 17"/><path d="M16 7h6v6"/>',
+    food: '<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3Zm0 0v7"/>',
+    bus: '<path d="M8 6v6M16 6v6M2 12h20"/><rect x="2" y="4" width="20" height="14" rx="3"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/>',
+  };
+  document.querySelectorAll('.ic').forEach(el => {
+    el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[el.dataset.i]}</svg>`;
+  });
+  const slides = [...document.querySelectorAll('.slide')];
+  const deck = document.getElementById('deck');
+  const notesEl = document.getElementById('notes');
+  const bar = document.getElementById('progress');
+  let i = 0, step = 0;
+  const frags = s => [...s.querySelectorAll('.f')];
+
+  function fit() {
+    const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+    deck.style.transform = `translate(-50%, -50%) scale(${k})`;
+  }
+  function render() {
+    slides.forEach((s, n) => s.classList.toggle('on', n === i));
+    frags(slides[i]).forEach((f, n) => f.classList.toggle('vis', n < step));
+    const num = slides[i].querySelector('.top .num');
+    notesEl.textContent = `${i + 1}/${slides.length} · ${slides[i].dataset.title} — ` + (slides[i].querySelector('.notes')?.textContent || '');
+    bar.style.width = `${((i + 1) / slides.length) * 100}%`;
+    history.replaceState(null, '', `#${i + 1}`);
+  }
+  function next() {
+    if (step < frags(slides[i]).length) step++;
+    else if (i < slides.length - 1) { i++; step = 0; }
+    render();
+  }
+  function prev() {
+    if (step > 0) step--;
+    else if (i > 0) { i--; step = frags(slides[i]).length; }
+    render();
+  }
+  // Cabeçalho com as ondas em todo slide que não é capa.
+  slides.forEach((s, n) => {
+    if (s.classList.contains('capa')) return;
+    const top = document.createElement('div');
+    top.className = 'top';
+    top.innerHTML = `<img src="assets/icon.svg" alt=""><span class="marca">Vem Aí</span><span class="sec">${s.dataset.title}</span><span class="num">${n + 1}/${slides.length}</span>`;
+    s.prepend(top);
+  });
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { i = 0; step = 0; render(); }
+    else if (e.key === 'End') { i = slides.length - 1; step = 0; render(); }
+    else if (e.key.toLowerCase() === 'n') notesEl.classList.toggle('show');
+    else if (e.key.toLowerCase() === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  });
+  deck.addEventListener('click', e => (e.clientX > innerWidth / 3 ? next() : prev()));
+  let tx = null;
+  addEventListener('touchstart', e => (tx = e.touches[0].clientX), { passive: true });
+  addEventListener('touchend', e => { if (tx == null) return; const d = e.changedTouches[0].clientX - tx; if (Math.abs(d) > 40) (d < 0 ? next() : prev()); tx = null; });
+  addEventListener('resize', fit);
+  const h = parseInt(location.hash.slice(1), 10);
+  if (h >= 1 && h <= slides.length) i = h - 1;
+  fit(); render();
+})();
+</script>
+</body>
+</html>

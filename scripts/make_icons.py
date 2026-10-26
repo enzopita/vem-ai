@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-STATIC = Path(__file__).resolve().parent.parent / "web" / "static"
+STATIC = Path(__file__).resolve().parent.parent / "frontend" / "static"
 BLUE, WHITE = (91, 63, 224), (255, 255, 255)
 FROM, TO = (79, 70, 229), (192, 38, 211)
 

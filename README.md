@@ -8,14 +8,26 @@ Os dados vêm de web scraping dos sites "Quanto Tempo Falta?" da BR Mobilidade (
 
 ## Como é distribuído
 
-Três processos independentes se comunicam por HTTP/JSON: um **coletor** por operadora e uma **central** que guarda o estado, serve a PWA e dispara os pushes. O desenho completo, as regras de notificação e as decisões estão em [docs/arquitetura.md](docs/arquitetura.md).
+Três processos independentes se comunicam por HTTP/JSON: um **coletor** por operadora e uma **central** que guarda o estado e dispara os pushes. O **front-end** é um serviço à parte (servidor estático mais proxy reverso) e a central só expõe a API. O desenho completo, as regras de notificação e as decisões estão em [docs/arquitetura.md](docs/arquitetura.md).
 
 ```
-navegador (PWA) ──▶ central ──▶ coletor piracicabana  ──▶ site da operadora
-                        └────▶ coletor brmobilidadebs ──▶ site da operadora
+navegador ──▶ front-end ──▶ central ──▶ coletor piracicabana  ──▶ site da operadora
+  (PWA)      (Caddy)           └────▶ coletor brmobilidadebs ──▶ site da operadora
 ```
 
 Se um coletor cai, a central marca a operadora como offline e as demais continuam funcionando.
+
+## Estrutura do repositório
+
+```
+backend/    API em Python (FastAPI): central, coletores, testes, certificados e Dockerfile
+frontend/   PWA em SvelteKit, com Dockerfile e Caddyfile próprios
+docs/       arquitetura e material da disciplina
+scripts/    dev.sh (ambiente local) e make_icons.py
+compose.yaml
+```
+
+Os dois lados só se falam pela API HTTP em `/api`. O backend não conhece o front-end.
 
 ## Como rodar
 
@@ -24,22 +36,12 @@ Requer Python 3.12 ou mais novo, o [uv](https://docs.astral.sh/uv/), Node 24 e o
 ### Desenvolvimento
 
 ```sh
-uv sync
-scripts/dev.sh          # coletores em 8001 e 8002, central em 8000
-cd web && pnpm install
-pnpm dev                # front-end em http://localhost:5173, com proxy de /api para a central
+scripts/dev.sh
 ```
 
-Abra http://localhost:5173. O Vite recarrega a página a cada alteração em `web/src`.
+O script sobe os coletores em `8001` e `8002`, a central em `8000` e o Vite em http://localhost:5173, que encaminha `/api` para a central. Abra http://localhost:5173. Se a porta 5173 estiver ocupada, o Vite usa a próxima e imprime o endereço.
 
-### Produção local
-
-```sh
-cd web && pnpm install && pnpm build
-cd .. && scripts/dev.sh
-```
-
-O `pnpm build` gera o SPA em `web/build`, e a central o serve em http://localhost:8000. Qualquer caminho que não seja `/api/*` nem um arquivo existente devolve o `index.html`, então links diretos como `/alertas` funcionam ao recarregar. Sem `web/build`, a central expõe só a API.
+Para rodar só uma parte: `cd backend && uv sync && uv run uvicorn vemai.central:create_app --factory` ou `cd frontend && pnpm install && pnpm dev`. O banco SQLite e a chave VAPID ficam em `data/`, relativo ao diretório onde a central roda (`backend/data`).
 
 ### Com Docker Compose
 
@@ -47,7 +49,7 @@ O `pnpm build` gera o SPA em `web/build`, e a central o serve em http://localhos
 docker compose up --build
 ```
 
-Sobe a central (`8000`) e os dois coletores com a mesma imagem. O build em duas etapas compila o front-end com Node e copia `web/build` para a imagem Python. O banco SQLite e a chave VAPID ficam no volume `central-data`.
+Abra http://localhost:8080 (mude com `FRONTEND_PORT`). Sobe o front-end, a central e os dois coletores. O front-end é o [Caddy](https://caddyserver.com/) servindo `frontend/build`, devolvendo `index.html` para qualquer rota do SPA e encaminhando `/api/*` para a central, então o PWA e a API ficam na mesma origem. A central não é publicada no host. O banco e a chave VAPID ficam no volume `central-data`.
 
 ### Variáveis de ambiente
 
@@ -64,12 +66,13 @@ A chave VAPID é gerada na primeira execução em `data/vapid_private.pem`.
 ### Testes
 
 ```sh
-uv run pytest
+cd backend && uv run pytest
+cd frontend && pnpm check
 ```
 
 ## Front-end
 
-SvelteKit (Svelte 5, TypeScript, Tailwind CSS v4) compilado como SPA estático com `adapter-static`, em `web/`.
+SvelteKit (Svelte 5, TypeScript, Tailwind CSS v4) compilado como SPA estático com `adapter-static`, em `frontend/`.
 
 | Caminho | Função |
 |---|---|
@@ -86,10 +89,10 @@ Comandos: `pnpm check` (tipos), `pnpm build` e `pnpm preview`.
 
 ## Notificações no celular
 
-O Web Push só funciona em HTTPS ou em `localhost`. Para testar no celular, exponha a central com um túnel HTTPS:
+O Web Push só funciona em HTTPS ou em `localhost`. Para testar no celular, exponha o front-end (Compose, porta 8080) com um túnel HTTPS:
 
 ```sh
-cloudflared tunnel --url http://localhost:8000
+cloudflared tunnel --url http://localhost:8080
 ```
 
 Abra o endereço `https://...trycloudflare.com` no celular. No iPhone é preciso tocar em Compartilhar, escolher "Adicionar à Tela de Início" e abrir o app por lá.
@@ -97,7 +100,7 @@ Abra o endereço `https://...trycloudflare.com` no celular. No iPhone é preciso
 ## Particularidades do scraping
 
 - Sem um `User-Agent` de navegador os sites respondem `403`.
-- Os servidores não enviam o certificado intermediário (GlobalSign Atlas R3 AlphaSSL CA 2026 Q2). O arquivo `certs/globalsign-alphassl-2026q2.pem` é somado ao bundle do `certifi`, então a verificação TLS continua ligada.
+- Os servidores não enviam o certificado intermediário (GlobalSign Atlas R3 AlphaSSL CA 2026 Q2). O arquivo `backend/certs/globalsign-alphassl-2026q2.pem` é somado ao bundle do `certifi`, então a verificação TLS continua ligada.
 - O rótulo da linha varia entre a tabela (`04`) e a lista de previsões acima de 20 min (`CIRCULAR 004`). O identificador estável é o hash `idLinha`.
 - `CHEGANDO!` significa 3 minutos ou menos e vira previsão `0`.
 - A busca de pontos exige pelo menos 3 letras.

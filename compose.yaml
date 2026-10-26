@@ -1,8 +1,13 @@
 services:
-  central:
-    build: .
+  frontend:
+    build: ./frontend
     ports:
-      - "8000:8000"
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      - central
+
+  central:
+    build: ./backend
     environment:
       COLLECTORS: piracicabana=http://coletor-piracicabana:8001,brmobilidadebs=http://coletor-brmobilidadebs:8001
       DB_PATH: /app/data/vemai.db
@@ -14,13 +19,13 @@ services:
       - coletor-brmobilidadebs
 
   coletor-piracicabana:
-    build: .
+    build: ./backend
     command: ["uvicorn", "vemai.collector:create_app", "--factory", "--host", "0.0.0.0", "--port", "8001"]
     environment:
       OPERATOR_BASE_URL: https://quantotempofalta.piracicabana.com.br
 
   coletor-brmobilidadebs:
-    build: .
+    build: ./backend
     command: ["uvicorn", "vemai.collector:create_app", "--factory", "--host", "0.0.0.0", "--port", "8001"]
     environment:
       OPERATOR_BASE_URL: https://quantotempofalta.brmobilidadebs.com.br

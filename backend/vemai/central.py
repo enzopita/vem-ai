@@ -4,12 +4,10 @@ import os
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import datetime
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
 
 from vemai.alerts import Alert, detect, is_active
 from vemai.db import Database
@@ -18,7 +16,6 @@ from vemai.push import PushSender, SubscriptionGone
 
 log = logging.getLogger("vemai.central")
 TZ = ZoneInfo("America/Sao_Paulo")
-WEB_DIR = Path(__file__).parent.parent / "web" / "build"
 
 
 def parse_collectors(spec: str) -> dict[str, str]:
@@ -87,7 +84,6 @@ def create_app(
     http: httpx.AsyncClient | None = None,
     monitor_interval_s: float | None = None,
     clock: Callable[[], datetime] = lambda: datetime.now(TZ),
-    web_dir: Path = WEB_DIR,
 ) -> FastAPI:
     db = db or Database()
     collectors = collectors if collectors is not None else parse_collectors(os.environ.get("COLLECTORS", ""))
@@ -177,22 +173,4 @@ def create_app(
             db.delete_subscription(sub.id)
             raise HTTPException(410, "o navegador cancelou esta inscrição") from None
 
-    if (web_dir / "index.html").is_file():
-        install_spa(app, web_dir)
     return app
-
-
-def install_spa(app: FastAPI, web_dir: Path) -> None:
-    """Serve the built SPA: real files as themselves, any other GET path as index.html (client-side routing)."""
-    root = web_dir.resolve()
-
-    @app.get("/{path:path}", include_in_schema=False)
-    async def spa(path: str) -> FileResponse:
-        if path == "api" or path.startswith("api/"):
-            raise HTTPException(404, "rota não encontrada")
-        target = (root / path).resolve()
-        if not (target.is_relative_to(root) and target.is_file()):
-            target = root / "index.html"
-        immutable = "_app/immutable/" in target.relative_to(root).as_posix() + "/"
-        cache = "public, max-age=31536000, immutable" if immutable else "no-cache"
-        return FileResponse(target, headers={"Cache-Control": cache})

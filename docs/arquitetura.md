@@ -25,27 +25,28 @@ A previsão aparece como `CHEGANDO!` (3 minutos ou menos, tratado como 0) ou `N 
 Restrições observadas nos servidores:
 
 - Sem `User-Agent` de navegador a resposta é `403`.
-- O servidor não envia o certificado intermediário (GlobalSign Atlas R3 AlphaSSL CA 2026 Q2). O arquivo `certs/globalsign-alphassl-2026q2.pem` é somado ao bundle do `certifi` para a verificação TLS passar sem desligá-la.
+- O servidor não envia o certificado intermediário (GlobalSign Atlas R3 AlphaSSL CA 2026 Q2). O arquivo `backend/certs/globalsign-alphassl-2026q2.pem` é somado ao bundle do `certifi` para a verificação TLS passar sem desligá-la.
 
 ## Componentes distribuídos
 
 ```
-              ┌───────────────────────┐
- navegador ──▶│  central (FastAPI)    │──▶ serviço de push do navegador (FCM, Mozilla, Apple)
- (PWA + SW)   │  SQLite, monitor, VAPID│
-              └──────┬─────────┬──────┘
-                HTTP │         │ HTTP
-        ┌────────────▼──┐  ┌───▼────────────┐
-        │ coletor       │  │ coletor        │
-        │ piracicabana  │  │ brmobilidadebs │
-        └──────┬────────┘  └──────┬─────────┘
-               ▼                  ▼
-         site da operadora   site da operadora
+              ┌───────────────┐    ┌────────────────────────┐
+ navegador ──▶│  front-end    │───▶│  central (FastAPI)     │──▶ serviço de push do navegador
+ (PWA + SW)   │  Caddy: SPA   │    │  SQLite, monitor, VAPID│    (FCM, Mozilla, Apple)
+              │  + proxy /api │    └──────┬──────────┬──────┘
+              └───────────────┘      HTTP │          │ HTTP
+                              ┌───────────▼───┐  ┌───▼────────────┐
+                              │ coletor       │  │ coletor        │
+                              │ piracicabana  │  │ brmobilidadebs │
+                              └──────┬────────┘  └──────┬─────────┘
+                                     ▼                  ▼
+                               site da operadora   site da operadora
 ```
 
 - **Coletor** (um processo por operadora, mesma imagem, configurado por variável de ambiente). Serviço HTTP sem estado que faz o scraping sob demanda e devolve JSON. Pode ser replicado e reiniciado sem perda.
-- **Central**. Único dono do estado: inscrições, último snapshot por ponto, notificações já enviadas. Serve o SPA compilado de `web/build`, faz proxy das buscas para o coletor certo e roda o monitor a cada 30 s.
-- **PWA**. SPA em SvelteKit (Svelte 5, TypeScript, Tailwind), compilado de `web/` com `adapter-static`. Inclui `manifest.webmanifest` e um service worker que guarda o app em cache para o modo offline e recebe o push. A central devolve o `index.html` para qualquer rota que não seja `/api/*`, então o roteamento fica no navegador.
+- **Central**. Único dono do estado: inscrições, último snapshot por ponto, notificações já enviadas. Expõe só a API, faz proxy das buscas para o coletor certo e roda o monitor a cada 30 s.
+- **Front-end**. Nó próprio, em `frontend/`. Um servidor Caddy serve o SPA compilado, devolve `index.html` para qualquer rota que não seja arquivo (roteamento no navegador) e encaminha `/api/*` para a central. O PWA e a API ficam na mesma origem, o que mantém o service worker e o push funcionando sem CORS.
+- **PWA**. SPA em SvelteKit (Svelte 5, TypeScript, Tailwind) com `adapter-static`. Inclui `manifest.webmanifest` e um service worker que guarda o app em cache para o modo offline e recebe o push. Em desenvolvimento o Vite faz o papel do Caddy.
 
 A comunicação entre nós é HTTP/JSON síncrono. Se um coletor cai, a central registra o erro, marca a operadora como indisponível em `/api/operators` e tenta de novo no próximo ciclo; as outras operadoras seguem funcionando.
 

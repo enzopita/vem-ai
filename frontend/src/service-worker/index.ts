@@ -66,7 +66,12 @@ sw.addEventListener('notificationclick', (event) => {
 	event.waitUntil(
 		sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
 			const open = windows.find((w) => new URL(w.url).origin === sw.location.origin);
-			return open ? open.focus() : sw.clients.openWindow(url);
+			if (!open) return sw.clients.openWindow(url);
+			// navigate() falha em janelas que o SW não controla (e devolve null fora da origem); aí só resta focar a que existe.
+			return open.navigate(url).then(
+				(client) => (client ?? open).focus(),
+				() => open.focus()
+			);
 		})
 	);
 });

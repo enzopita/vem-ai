@@ -3,6 +3,7 @@ import base64
 import json
 import os
 from pathlib import Path
+from urllib.parse import quote
 
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from py_vapid import Vapid
@@ -32,7 +33,9 @@ class PushSender:
         raw = self._vapid.public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
         return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 
-    async def send(self, sub: Subscription, title: str, body: str, url: str = "/") -> None:
+    async def send(self, sub: Subscription, title: str, body: str) -> None:
+        # O toque na notificação abre o painel do ponto do alerta, no mesmo formato de link que o front-end usa.
+        url = f"/ponto/{quote(sub.stop_id, safe='')}?nome={quote(sub.stop_name, safe='')}"
         await asyncio.to_thread(self._send_blocking, sub, {"title": title, "body": body, "url": url})
 
     def _send_blocking(self, sub: Subscription, payload: dict) -> None:

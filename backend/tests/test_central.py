@@ -58,7 +58,7 @@ class StubSender:
         self.sent = []
         self.gone = False
 
-    async def send(self, sub, title, body, url="/"):
+    async def send(self, sub, title, body):
         if self.gone:
             raise SubscriptionGone
         self.sent.append((sub.id, title, body))

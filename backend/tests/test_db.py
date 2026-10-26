@@ -5,7 +5,7 @@ from vemai.models import PushKeys, SubscriptionIn
 def make_sub(**over):
     data = dict(
         endpoint="https://push.example/1", keys=PushKeys(p256dh="p", auth="a"),
-        operator="piracicabana", stop_id="9306", stop_name="Ponto", line_id="aaa",
+        stop_id="9306", stop_name="Ponto", line_id="aaa",
         line_label="184", time="08:00", lead_min=10,
     )
     return SubscriptionIn(**{**data, **over})

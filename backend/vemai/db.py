@@ -11,14 +11,13 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     endpoint TEXT NOT NULL,
     p256dh TEXT NOT NULL,
     auth TEXT NOT NULL,
-    operator TEXT NOT NULL,
     stop_id TEXT NOT NULL,
     stop_name TEXT NOT NULL,
     line_id TEXT NOT NULL,
     line_label TEXT NOT NULL,
     time TEXT NOT NULL,
     lead_min INTEGER NOT NULL,
-    UNIQUE (endpoint, operator, stop_id, line_id, time)
+    UNIQUE (endpoint, stop_id, line_id, time)
 );
 CREATE TABLE IF NOT EXISTS notifications (
     subscription_id INTEGER NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
@@ -35,7 +34,6 @@ def _to_subscription(row: sqlite3.Row) -> Subscription:
         id=row["id"],
         endpoint=row["endpoint"],
         keys=PushKeys(p256dh=row["p256dh"], auth=row["auth"]),
-        operator=row["operator"],
         stop_id=row["stop_id"],
         stop_name=row["stop_name"],
         line_id=row["line_id"],
@@ -63,12 +61,12 @@ class Database:
         with closing(self._connect()) as conn, conn:
             row = conn.execute(
                 """INSERT INTO subscriptions
-                   (endpoint, p256dh, auth, operator, stop_id, stop_name, line_id, line_label, time, lead_min)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                   ON CONFLICT (endpoint, operator, stop_id, line_id, time)
+                   (endpoint, p256dh, auth, stop_id, stop_name, line_id, line_label, time, lead_min)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT (endpoint, stop_id, line_id, time)
                    DO UPDATE SET lead_min = excluded.lead_min, p256dh = excluded.p256dh, auth = excluded.auth
                    RETURNING *""",
-                (sub.endpoint, sub.keys.p256dh, sub.keys.auth, sub.operator, sub.stop_id,
+                (sub.endpoint, sub.keys.p256dh, sub.keys.auth, sub.stop_id,
                  sub.stop_name, sub.line_id, sub.line_label, sub.time, sub.lead_min),
             ).fetchone()
         return _to_subscription(row)

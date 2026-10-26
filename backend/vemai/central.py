@@ -11,11 +11,19 @@ from fastapi import FastAPI, HTTPException, Query
 
 from vemai.alerts import Alert, detect, is_active
 from vemai.db import Database
-from vemai.models import StopBoard, Subscription, SubscriptionIn
+from vemai.models import RegionBoard, Stop, StopSearch, Subscription, SubscriptionIn
 from vemai.push import PushSender, SubscriptionGone
+from vemai.region import merge_boards, merge_stops
 
 log = logging.getLogger("vemai.central")
 TZ = ZoneInfo("America/Sao_Paulo")
+COLLECTOR_TIMEOUT_S = 10
+
+
+class CollectorError(Exception):
+    def __init__(self, operator: str):
+        super().__init__(operator)
+        self.operator = operator
 
 
 def parse_collectors(spec: str) -> dict[str, str]:
@@ -36,26 +44,30 @@ def describe(alert: Alert, stop_name: str) -> tuple[str, str]:
 class Monitor:
     def __init__(self, db: Database, fetch_board: Callable, sender: PushSender, clock: Callable[[], datetime]):
         self.db, self.fetch_board, self.sender, self.clock = db, fetch_board, sender, clock
-        self.previous: dict[tuple[str, str], StopBoard] = {}
+        self.previous: dict[str, RegionBoard] = {}
 
     async def cycle(self) -> None:
         now = self.clock()
-        by_stop: dict[tuple[str, str], list[Subscription]] = {}
+        by_stop: dict[str, list[Subscription]] = {}
         for sub in self.db.list_subscriptions():
             if is_active(sub.time, now):
-                by_stop.setdefault((sub.operator, sub.stop_id), []).append(sub)
+                by_stop.setdefault(sub.stop_id, []).append(sub)
 
-        # Só guardamos o que foi lido neste ciclo: um snapshot velho geraria falsos "sumiu".
-        current: dict[tuple[str, str], StopBoard] = {}
-        for key, subs in by_stop.items():
+        # Só guardamos o que foi lido por inteiro neste ciclo: um snapshot velho ou parcial geraria falsos "sumiu".
+        current: dict[str, RegionBoard] = {}
+        for stop_id, subs in by_stop.items():
             try:
-                board = await self.fetch_board(*key)
+                board = await self.fetch_board(stop_id)
             except Exception:
-                log.exception("falha ao ler o ponto %s", key)
+                log.exception("falha ao ler o ponto %s", stop_id)
                 continue
-            current[key] = board
+            # Sem um coletor, os veículos dele somem do quadro; comparar com o anterior os daria por perdidos.
+            complete = not board.unavailable
+            if complete:
+                current[stop_id] = board
+            prev = self.previous.get(stop_id) if complete else None
             for sub in subs:
-                for alert in detect(self.previous.get(key), board, sub):
+                for alert in detect(prev, board, sub):
                     if self.db.record_notification(sub.id, alert.vehicle, alert.kind, now.date().isoformat()):
                         await self._push(sub, *describe(alert, sub.stop_name))
         self.previous = current
@@ -91,19 +103,34 @@ def create_app(
     http = http or httpx.AsyncClient(timeout=15)
     interval = monitor_interval_s or float(os.environ.get("MONITOR_INTERVAL_S", "30"))
 
-    async def collector_get(op: str, path: str, params: dict | None = None, timeout: float = 15):
-        if op not in collectors:
-            raise HTTPException(404, f"operadora desconhecida: {op}")
+    async def collector_get(op: str, path: str, params: dict | None = None, timeout: float = COLLECTOR_TIMEOUT_S):
         try:
             resp = await http.get(f"{collectors[op]}{path}", params=params, timeout=timeout)
-        except httpx.HTTPError as exc:
-            raise HTTPException(503, f"coletor da operadora {op} indisponível") from exc
-        if resp.is_error:
-            raise HTTPException(resp.status_code, resp.json().get("detail", "erro no coletor"))
-        return resp.json()
+            resp.raise_for_status()
+            return resp.json()
+        except (httpx.HTTPError, ValueError) as exc:
+            raise CollectorError(op) from exc
 
-    async def fetch_board(op: str, stop_id: str) -> StopBoard:
-        return StopBoard.model_validate(await collector_get(op, f"/stops/{stop_id}/board"))
+    async def scatter(path: str, params: dict | None = None) -> tuple[list, list[str]]:
+        """Consulta todos os coletores da região; devolve as respostas e as operadoras que falharam."""
+        outcomes = await asyncio.gather(*(collector_get(op, path, params) for op in collectors), return_exceptions=True)
+        results, unavailable = [], []
+        for op, outcome in zip(collectors, outcomes):
+            if isinstance(outcome, CollectorError):
+                log.warning("coletor %s indisponível em %s", op, path)
+                unavailable.append(op)
+            elif isinstance(outcome, BaseException):
+                raise outcome
+            else:
+                results.append(outcome)
+        if not results:
+            raise HTTPException(503, "nenhum coletor da região está disponível")
+        return results, unavailable
+
+    async def fetch_board(stop_id: str) -> RegionBoard:
+        results, unavailable = await scatter(f"/stops/{stop_id}/board")
+        boards = [RegionBoard.model_validate(r) for r in results]
+        return merge_boards(stop_id, boards).model_copy(update={"unavailable": unavailable})
 
     monitor = Monitor(db, fetch_board, sender, clock)
 
@@ -117,25 +144,27 @@ def create_app(
     app = FastAPI(title="Vem Aí: central", lifespan=lifespan)
     app.state.monitor = monitor
 
-    @app.get("/api/operators")
-    async def operators() -> list[dict]:
+    @app.get("/api/status")
+    async def status() -> list[dict]:
         async def online(op: str) -> bool:
             try:
                 await collector_get(op, "/health", timeout=2)
                 return True
-            except HTTPException:
+            except CollectorError:
                 return False
 
         states = await asyncio.gather(*(online(op) for op in collectors))
         return [{"name": op, "online": up} for op, up in zip(collectors, states)]
 
-    @app.get("/api/operators/{op}/stops")
-    async def stops(op: str, q: str = Query(min_length=3)):
-        return await collector_get(op, "/stops", {"q": q})
+    @app.get("/api/stops")
+    async def stops(q: str = Query(min_length=3)) -> StopSearch:
+        results, unavailable = await scatter("/stops", {"q": q})
+        merged = merge_stops([[Stop.model_validate(s) for s in r] for r in results])
+        return StopSearch(stops=merged, unavailable=unavailable)
 
-    @app.get("/api/operators/{op}/stops/{stop_id}/board")
-    async def board(op: str, stop_id: str):
-        return await collector_get(op, f"/stops/{stop_id}/board")
+    @app.get("/api/stops/{stop_id}/board")
+    async def board(stop_id: str) -> RegionBoard:
+        return await fetch_board(stop_id)
 
     @app.get("/api/vapid-public-key")
     async def vapid_public_key() -> dict[str, str]:
@@ -143,8 +172,6 @@ def create_app(
 
     @app.post("/api/subscriptions", status_code=201)
     async def create_subscription(body: SubscriptionIn) -> Subscription:
-        if body.operator not in collectors:
-            raise HTTPException(422, f"operadora desconhecida: {body.operator}")
         return db.add_subscription(body)
 
     @app.get("/api/subscriptions")

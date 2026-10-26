@@ -23,6 +23,15 @@ class StopBoard(BaseModel):
     other_lines: list[Line]
 
 
+class RegionBoard(StopBoard):
+    unavailable: list[str] = []  # operadoras cujo coletor falhou nesta leitura
+
+
+class StopSearch(BaseModel):
+    stops: list[Stop]
+    unavailable: list[str] = []
+
+
 class PushKeys(BaseModel):
     p256dh: str
     auth: str
@@ -31,7 +40,6 @@ class PushKeys(BaseModel):
 class SubscriptionIn(BaseModel):
     endpoint: str
     keys: PushKeys
-    operator: str
     stop_id: str
     stop_name: str
     line_id: str

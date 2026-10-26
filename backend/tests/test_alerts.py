@@ -10,7 +10,7 @@ OTHER = Line(id="bbb", label="08")
 def sub(lead_min=10):
     return Subscription(
         id=1, endpoint="https://push.example/1", keys=PushKeys(p256dh="p", auth="a"),
-        operator="piracicabana", stop_id="9306", stop_name="Ponto", line_id="aaa",
+        stop_id="9306", stop_name="Ponto", line_id="aaa",
         line_label="184", time="08:00", lead_min=lead_min,
     )
 

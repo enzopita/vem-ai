@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-STATIC = Path(__file__).resolve().parent.parent / "vemai" / "static"
+STATIC = Path(__file__).resolve().parent.parent / "web" / "static"
 BLUE, WHITE = (11, 95, 255), (255, 255, 255)
 
 

@@ -177,3 +177,46 @@ async def test_one_failing_collector_does_not_stop_the_others(env):
     collector.down_hosts.add("c2")
     await monitor.cycle()
     assert len(sender.sent) == 1
+
+
+@pytest.fixture
+def spa_client(tmp_path):
+    web = tmp_path / "build"
+    (web / "_app" / "immutable").mkdir(parents=True)
+    (web / "index.html").write_text("<html>vem ai spa</html>")
+    (web / "_app" / "immutable" / "app.js").write_text("console.log(1)")
+    (web / "service-worker.js").write_text("// sw")
+    (tmp_path / "segredo.txt").write_text("fora do build")
+    app = create_app(
+        db=Database(str(tmp_path / "t.db")),
+        collectors={},
+        sender=StubSender(),
+        http=httpx.AsyncClient(transport=httpx.MockTransport(FakeCollector())),
+        web_dir=web,
+    )
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t")
+
+
+@pytest.mark.parametrize("path", ["/", "/alertas", "/ponto/piracicabana/9306"])
+async def test_spa_deep_links_return_index(spa_client, path):
+    resp = await spa_client.get(path)
+    assert resp.status_code == 200
+    assert "vem ai spa" in resp.text
+
+
+async def test_spa_serves_real_files_with_cache_policy(spa_client):
+    asset = await spa_client.get("/_app/immutable/app.js")
+    assert asset.text == "console.log(1)"
+    assert "immutable" in asset.headers["cache-control"]
+    assert (await spa_client.get("/service-worker.js")).headers["cache-control"] == "no-cache"
+
+
+async def test_unknown_api_path_is_json_404_not_index(spa_client):
+    resp = await spa_client.get("/api/unknown")
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "rota não encontrada"}
+
+
+async def test_spa_does_not_escape_the_build_dir(spa_client):
+    resp = await spa_client.get("/..%2Fsegredo.txt")
+    assert "fora do build" not in resp.text

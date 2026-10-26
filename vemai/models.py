@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Stop(BaseModel):
@@ -21,3 +21,24 @@ class StopBoard(BaseModel):
     stop_id: str
     predictions: list[Prediction]
     other_lines: list[Line]
+
+
+class PushKeys(BaseModel):
+    p256dh: str
+    auth: str
+
+
+class SubscriptionIn(BaseModel):
+    endpoint: str
+    keys: PushKeys
+    operator: str
+    stop_id: str
+    stop_name: str
+    line_id: str
+    line_label: str
+    time: str = Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")  # HH:MM, horário aproximado
+    lead_min: int = Field(default=10, ge=1, le=30)
+
+
+class Subscription(SubscriptionIn):
+    id: int

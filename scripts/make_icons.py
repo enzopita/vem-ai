@@ -4,7 +4,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 STATIC = Path(__file__).resolve().parent.parent / "web" / "static"
-BLUE, WHITE = (11, 95, 255), (255, 255, 255)
+BLUE, WHITE = (91, 63, 224), (255, 255, 255)
+FROM, TO = (79, 70, 229), (192, 38, 211)
 
 
 def draw(size: int) -> Image.Image:
@@ -18,7 +19,11 @@ def draw(size: int) -> Image.Image:
     def circle(cx, cy, r, fill):
         d.ellipse([(cx - r) * k, (cy - r) * k, (cx + r) * k, (cy + r) * k], fill=fill)
 
-    rect(0, 0, 512, 512, 96, BLUE)
+    gradient = Image.new("L", (size, size))
+    gradient.putdata([round((x + y) * 255 / (2 * size - 2)) for y in range(size) for x in range(size)])
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, size, size], radius=96 * k, fill=255)
+    img.paste(Image.composite(Image.new("RGB", (size, size), TO), Image.new("RGB", (size, size), FROM), gradient), mask=mask)
     rect(96, 120, 320, 240, 40, WHITE)
     rect(128, 152, 256, 96, 16, BLUE)
     circle(176, 392, 36, WHITE)

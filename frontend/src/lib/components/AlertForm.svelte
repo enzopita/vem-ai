@@ -18,7 +18,6 @@
 	let lead = $state(10);
 	let busy = $state(false);
 
-	const lineId = $derived(lines.some((l) => l.id === chosenLine) ? chosenLine : (lines[0]?.id ?? ''));
 	const blocked = $derived(
 		support === 'needs-home-screen'
 			? 'No iPhone, toque em Compartilhar e escolha "Adicionar à Tela de Início". Abra o app por lá para receber avisos.'
@@ -31,7 +30,7 @@
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
-		const line = lines.find((l) => l.id === lineId);
+		const line = lines.find((l) => l.id === chosenLine);
 		if (!line || busy) return;
 		busy = true;
 		try {
@@ -74,7 +73,8 @@
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div>
 					<label for="line" class="mb-1.5 block text-sm font-bold">Linha</label>
-					<select id="line" bind:value={() => lineId, (id) => (chosenLine = id)} class={field}>
+					<select id="line" bind:value={chosenLine} required class={field}>
+						<option value="" disabled>Escolha a linha</option>
 						{#each lines as line (line.id)}
 							<option value={line.id}>{line.label}</option>
 						{/each}

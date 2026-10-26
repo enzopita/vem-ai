@@ -20,11 +20,15 @@
 	let updatedAt = $state<Date | null>(null);
 
 	const predictions = $derived([...(board?.predictions ?? [])].sort((a, b) => a.eta_min - b.eta_min));
-	const lines = $derived.by(() => {
-		const byId = new Map<string, Line>();
-		for (const line of [...predictions.map((p) => p.line), ...(board?.other_lines ?? [])]) byId.set(line.id, line);
-		return [...byId.values()];
-	});
+	// Linhas vistas neste ponto desde que a tela abriu, em ordem de número: se dependessem só da leitura atual,
+	// a opção escolhida no alerta mudaria de lugar ou sumiria quando o ônibus sai do quadro.
+	let lines = $state<Line[]>([]);
+
+	function remember(seen: RegionBoard) {
+		const byId = new Map(lines.map((line) => [line.id, line]));
+		for (const line of [...seen.predictions.map((p) => p.line), ...seen.other_lines]) byId.set(line.id, line);
+		lines = [...byId.values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { numeric: true }));
+	}
 
 	let current: AbortController | undefined;
 
@@ -34,6 +38,7 @@
 		refreshing = true;
 		try {
 			board = await api.board(stopId, ctrl.signal);
+			remember(board);
 			error = '';
 			updatedAt = new Date();
 		} catch (err) {
@@ -49,6 +54,7 @@
 
 	$effect(() => {
 		board = null;
+		lines = [];
 		error = '';
 		updatedAt = null;
 		void refresh();

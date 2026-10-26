@@ -44,8 +44,8 @@ Restrições observadas nos servidores:
 ```
 
 - **Coletor** (um processo por operadora, mesma imagem, configurado por variável de ambiente). Serviço HTTP sem estado que faz o scraping sob demanda e devolve JSON. Pode ser replicado e reiniciado sem perda.
-- **Central**. Único dono do estado: inscrições, último snapshot por ponto, notificações já enviadas. Serve a PWA, faz proxy das buscas para o coletor certo e roda o monitor a cada 30 s.
-- **PWA**. HTML/JS puro, `manifest.webmanifest` e service worker que recebe o push.
+- **Central**. Único dono do estado: inscrições, último snapshot por ponto, notificações já enviadas. Serve o SPA compilado de `web/build`, faz proxy das buscas para o coletor certo e roda o monitor a cada 30 s.
+- **PWA**. SPA em SvelteKit (Svelte 5, TypeScript, Tailwind), compilado de `web/` com `adapter-static`. Inclui `manifest.webmanifest` e um service worker que guarda o app em cache para o modo offline e recebe o push. A central devolve o `index.html` para qualquer rota que não seja `/api/*`, então o roteamento fica no navegador.
 
 A comunicação entre nós é HTTP/JSON síncrono. Se um coletor cai, a central registra o erro, marca a operadora como indisponível em `/api/operators` e tenta de novo no próximo ciclo; as outras operadoras seguem funcionando.
 

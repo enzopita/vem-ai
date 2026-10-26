@@ -19,16 +19,27 @@ Se um coletor cai, a central marca a operadora como offline e as demais continua
 
 ## Como rodar
 
-Requer Python 3.12 ou mais novo e o [uv](https://docs.astral.sh/uv/).
+Requer Python 3.12 ou mais novo, o [uv](https://docs.astral.sh/uv/), Node 24 e o [pnpm](https://pnpm.io/).
 
-### Local, com uv
+### Desenvolvimento
 
 ```sh
 uv sync
-scripts/dev.sh
+scripts/dev.sh          # coletores em 8001 e 8002, central em 8000
+cd web && pnpm install
+pnpm dev                # front-end em http://localhost:5173, com proxy de /api para a central
 ```
 
-O script sobe os coletores em `8001` (Piracicabana) e `8002` (BR Mobilidade BS) e a central em `8000`. Abra http://localhost:8000.
+Abra http://localhost:5173. O Vite recarrega a página a cada alteração em `web/src`.
+
+### Produção local
+
+```sh
+cd web && pnpm install && pnpm build
+cd .. && scripts/dev.sh
+```
+
+O `pnpm build` gera o SPA em `web/build`, e a central o serve em http://localhost:8000. Qualquer caminho que não seja `/api/*` nem um arquivo existente devolve o `index.html`, então links diretos como `/alertas` funcionam ao recarregar. Sem `web/build`, a central expõe só a API.
 
 ### Com Docker Compose
 
@@ -36,7 +47,7 @@ O script sobe os coletores em `8001` (Piracicabana) e `8002` (BR Mobilidade BS) 
 docker compose up --build
 ```
 
-Sobe a central (`8000`) e os dois coletores com a mesma imagem. O banco SQLite e a chave VAPID ficam no volume `central-data`.
+Sobe a central (`8000`) e os dois coletores com a mesma imagem. O build em duas etapas compila o front-end com Node e copia `web/build` para a imagem Python. O banco SQLite e a chave VAPID ficam no volume `central-data`.
 
 ### Variáveis de ambiente
 
@@ -55,6 +66,23 @@ A chave VAPID é gerada na primeira execução em `data/vapid_private.pem`.
 ```sh
 uv run pytest
 ```
+
+## Front-end
+
+SvelteKit (Svelte 5, TypeScript, Tailwind CSS v4) compilado como SPA estático com `adapter-static`, em `web/`.
+
+| Caminho | Função |
+|---|---|
+| `src/routes/+page.svelte` | Escolha da operadora e busca de pontos |
+| `src/routes/ponto/[operator]/[stopId]` | Painel do ponto, atualizado a cada 15 s, com o formulário de alerta |
+| `src/routes/alertas` | Alertas deste aparelho, com testar e excluir |
+| `src/lib/api.ts` | Cliente tipado da API da central |
+| `src/lib/push.ts` | Permissão, inscrição Web Push e detecção de suporte |
+| `src/lib/components/` | Componentes pequenos (cartões, busca, formulário, toast) |
+| `src/service-worker/` | Cache do app para uso offline, recebimento do push e clique na notificação |
+| `static/` | Manifesto e ícones (`scripts/make_icons.py` gera os PNG) |
+
+Comandos: `pnpm check` (tipos), `pnpm build` e `pnpm preview`.
 
 ## Notificações no celular
 

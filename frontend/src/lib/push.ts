@@ -1,10 +1,10 @@
 import { api, type PushKeys } from './api';
 
-export type PushSupport = 'supported' | 'needs-home-screen' | 'unsupported';
+export type PushSupport = 'supported' | 'denied' | 'needs-home-screen' | 'unsupported';
 
 export class PermissionDeniedError extends Error {
 	constructor() {
-		super('Sem permissão de notificação não é possível avisar você. Libere nas configurações do navegador.');
+		super('Sem a permissão de notificação não dá para avisar você. Toque em "Ativar alerta" de novo para permitir.');
 		this.name = 'PermissionDeniedError';
 	}
 }
@@ -21,10 +21,12 @@ export function pushSupport(): PushSupport {
 		(navigator as Navigator & { standalone?: boolean }).standalone === true;
 	if (ios && !standalone) return 'needs-home-screen';
 	const capable = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-	return capable ? 'supported' : 'unsupported';
+	if (!capable) return 'unsupported';
+	return Notification.permission === 'denied' ? 'denied' : 'supported';
 }
 
-export const permissionDenied = () => 'Notification' in window && Notification.permission === 'denied';
+/** O navegador ainda vai perguntar: a pessoa precisa saber antes por que o pedido aparece. */
+export const willAskPermission = () => 'Notification' in window && Notification.permission === 'default';
 
 function urlBase64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
 	const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { api, messageOf, type Line } from '#lib/api.ts';
-	import { permissionDenied, pushSupport, subscribe } from '#lib/push.ts';
+	import { PermissionDeniedError, pushSupport, subscribe, willAskPermission } from '#lib/push.ts';
 	import { notify } from '#lib/toast.svelte.ts';
+	import PushHelp from './PushHelp.svelte';
 
 	interface Props {
 		stopId: string;
@@ -11,22 +12,18 @@
 
 	let { stopId, stopName, lines }: Props = $props();
 
-	const support = pushSupport();
+	let support = $state(pushSupport());
+	let asking = $state(willAskPermission());
 	const now = new Date();
 	let chosenLine = $state('');
 	let time = $state(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
 	let lead = $state(10);
 	let busy = $state(false);
 
-	const blocked = $derived(
-		support === 'needs-home-screen'
-			? 'No iPhone, toque em Compartilhar e escolha "Adicionar à Tela de Início". Abra o app por lá para receber avisos.'
-			: support === 'unsupported'
-				? 'Este navegador não suporta notificações push. Você ainda pode consultar os horários.'
-				: support === 'supported' && permissionDenied()
-					? 'As notificações estão bloqueadas neste navegador. Libere nas configurações do site para ativar alertas.'
-					: ''
-	);
+	function recheck() {
+		support = pushSupport();
+		asking = willAskPermission();
+	}
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
@@ -44,9 +41,16 @@
 				time,
 				lead_min: lead
 			});
+			asking = false;
 			notify('ok', `Alerta ativado para a linha ${line.label}.`);
 		} catch (err) {
-			notify('error', messageOf(err));
+			if (err instanceof PermissionDeniedError) {
+				recheck();
+				// Negado vira o bloco fixo acima; pedido fechado sem resposta pode ser refeito no próximo toque.
+				if (support === 'supported') notify('info', err.message);
+			} else {
+				notify('error', messageOf(err));
+			}
 		} finally {
 			busy = false;
 		}
@@ -62,9 +66,11 @@
 		Receba uma notificação quando a linha escolhida estiver perto, no horário em que você costuma pegá-la.
 	</p>
 
-	{#if blocked}
-		<p class="mt-4 rounded-2xl bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200" role="status">{blocked}</p>
-	{/if}
+	<div aria-live="polite">
+		{#if support !== 'supported'}
+			<div class="mt-4"><PushHelp {support} onrecheck={recheck} /></div>
+		{/if}
+	</div>
 
 	{#if lines.length === 0}
 		<p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Nenhuma linha passa por aqui agora. Volte quando houver previsões.</p>
@@ -92,8 +98,14 @@
 				</label>
 				<input id="lead" type="range" min="1" max="30" bind:value={lead} class="w-full accent-violet-600" />
 			</div>
+			{#if asking && support === 'supported'}
+				<p id="permission-hint" class="text-sm text-slate-600 dark:text-slate-400">
+					Na primeira vez, o navegador vai pedir permissão para mostrar notificações. Toque em "Permitir" para receber o aviso.
+				</p>
+			{/if}
 			<button
 				type="submit"
+				aria-describedby={asking && support === 'supported' ? 'permission-hint' : undefined}
 				disabled={busy || support !== 'supported'}
 				class="w-full rounded-2xl bg-linear-to-r from-indigo-600 to-fuchsia-600 px-6 py-3 font-extrabold text-white shadow-lg shadow-violet-500/30 transition enabled:hover:brightness-110 enabled:active:scale-[0.98] disabled:opacity-50"
 			>

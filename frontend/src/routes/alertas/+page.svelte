@@ -4,10 +4,11 @@
 	import { fade, fly } from 'svelte/transition';
 	import { api, messageOf, type Subscription } from '#lib/api.ts';
 	import AlertCard from '#lib/components/AlertCard.svelte';
+	import PushHelp from '#lib/components/PushHelp.svelte';
 	import { currentSubscription, pushSupport } from '#lib/push.ts';
 	import { notify } from '#lib/toast.svelte.ts';
 
-	const support = pushSupport();
+	let support = $state(pushSupport());
 	let alerts = $state<Subscription[]>([]);
 	let loading = $state(true);
 	let error = $state('');
@@ -17,7 +18,8 @@
 		loading = true;
 		error = '';
 		try {
-			const sub = support === 'supported' ? await currentSubscription() : null;
+			// Bloqueado ainda pode ter inscrição antiga: os alertas aparecem, com o aviso de que não vão chegar.
+			const sub = support === 'supported' || support === 'denied' ? await currentSubscription() : null;
 			alerts = sub ? await api.listSubscriptions(sub.endpoint) : [];
 		} catch (err) {
 			error = messageOf(err);
@@ -51,6 +53,11 @@
 			notify('info', 'Alerta excluído.');
 		});
 
+	function recheck() {
+		support = pushSupport();
+		void load();
+	}
+
 	onMount(load);
 </script>
 
@@ -62,14 +69,8 @@
 		<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Os avisos ativos neste aparelho.</p>
 	</section>
 
-	{#if support === 'needs-home-screen'}
-		<p class="rounded-3xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-			No iPhone, toque em Compartilhar e escolha "Adicionar à Tela de Início". Abra o app por lá para receber avisos.
-		</p>
-	{:else if support === 'unsupported'}
-		<p class="rounded-3xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-			Este navegador não suporta notificações push, então não há alertas neste aparelho.
-		</p>
+	{#if support !== 'supported'}
+		<PushHelp {support} onrecheck={recheck} />
 	{/if}
 
 	{#if loading}
@@ -83,7 +84,7 @@
 			<p class="font-semibold text-rose-800 dark:text-rose-200">{error}</p>
 			<button type="button" onclick={load} class="mt-3 rounded-xl bg-violet-600 px-5 font-semibold text-white hover:bg-violet-700">Tentar de novo</button>
 		</div>
-	{:else if alerts.length === 0}
+	{:else if alerts.length === 0 && support === 'supported'}
 		<div class="rounded-3xl bg-white p-10 text-center dark:bg-slate-900" in:fade>
 			<p class="text-4xl" aria-hidden="true">🔔</p>
 			<p class="mt-3 text-lg font-bold">Nenhum alerta neste aparelho</p>

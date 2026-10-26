@@ -19,7 +19,7 @@
 			<p class="font-bold">Linha {alert.line_label} às {alert.time}</p>
 			<p class="text-sm text-slate-500 dark:text-slate-400">Avisa {alert.lead_min} min antes</p>
 			<a
-				href="/ponto/{encodeURIComponent(alert.operator)}/{encodeURIComponent(alert.stop_id)}?nome={encodeURIComponent(alert.stop_name)}"
+				href="/ponto/{encodeURIComponent(alert.stop_id)}?nome={encodeURIComponent(alert.stop_name)}"
 				class="mt-1 block truncate text-sm font-medium text-violet-600 hover:underline dark:text-violet-300"
 			>
 				{alert.stop_name}

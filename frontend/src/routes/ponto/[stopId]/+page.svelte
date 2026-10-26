@@ -2,18 +2,18 @@
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import { page } from '$app/state';
-	import { api, messageOf, type Line, type StopBoard } from '#lib/api.ts';
+	import { api, messageOf, type Line, type RegionBoard } from '#lib/api.ts';
 	import AlertForm from '#lib/components/AlertForm.svelte';
 	import LineBadge from '#lib/components/LineBadge.svelte';
 	import PredictionRow from '#lib/components/PredictionRow.svelte';
+	import UnavailableNotice from '#lib/components/UnavailableNotice.svelte';
 
 	const REFRESH_MS = 15_000;
 
-	const operator = $derived(page.params.operator ?? '');
 	const stopId = $derived(page.params.stopId ?? '');
 	const stopName = $derived(page.url.searchParams.get('nome') ?? `Ponto ${stopId}`);
 
-	let board = $state<StopBoard | null>(null);
+	let board = $state<RegionBoard | null>(null);
 	let error = $state('');
 	let refreshing = $state(false);
 	let tick = $state(0);
@@ -33,7 +33,7 @@
 		const ctrl = (current = new AbortController());
 		refreshing = true;
 		try {
-			board = await api.board(operator, stopId, ctrl.signal);
+			board = await api.board(stopId, ctrl.signal);
 			error = '';
 			updatedAt = new Date();
 		} catch (err) {
@@ -100,6 +100,8 @@
 		</div>
 	{/if}
 
+	{#if board}<UnavailableNotice unavailable={board.unavailable} />{/if}
+
 	{#if !board && !error}
 		<div class="space-y-3" aria-label="Carregando previsões">
 			{#each [0, 1, 2] as i (i)}
@@ -137,6 +139,6 @@
 			</section>
 		{/if}
 
-		<AlertForm {operator} {stopId} {stopName} {lines} />
+		<AlertForm {stopId} {stopName} {lines} />
 	{/if}
 </div>

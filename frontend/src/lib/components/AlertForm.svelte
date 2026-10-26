@@ -4,13 +4,12 @@
 	import { notify } from '#lib/toast.svelte.ts';
 
 	interface Props {
-		operator: string;
 		stopId: string;
 		stopName: string;
 		lines: Line[];
 	}
 
-	let { operator, stopId, stopName, lines }: Props = $props();
+	let { stopId, stopName, lines }: Props = $props();
 
 	const support = pushSupport();
 	const now = new Date();
@@ -39,7 +38,6 @@
 			const identity = await subscribe();
 			await api.createSubscription({
 				...identity,
-				operator,
 				stop_id: stopId,
 				stop_name: stopName,
 				line_id: line.id,

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { api, messageOf, type Stop } from '#lib/api.ts';
-
-	let { operator }: { operator: string } = $props();
+	import UnavailableNotice from './UnavailableNotice.svelte';
 
 	const MIN_CHARS = 3;
 	let query = $state('');
 	let stops = $state<Stop[]>([]);
+	let unavailable = $state<string[]>([]);
 	let loading = $state(false);
 	let error = $state('');
 
@@ -14,8 +14,8 @@
 
 	$effect(() => {
 		const q = term;
-		const op = operator;
 		stops = [];
+		unavailable = [];
 		error = '';
 		if (q.length < MIN_CHARS) {
 			loading = false;
@@ -25,7 +25,9 @@
 		const ctrl = new AbortController();
 		const timer = setTimeout(async () => {
 			try {
-				stops = await api.searchStops(op, q, ctrl.signal);
+				const found = await api.searchStops(q, ctrl.signal);
+				stops = found.stops;
+				unavailable = found.unavailable;
 				loading = false;
 			} catch (err) {
 				if (ctrl.signal.aborted) return;
@@ -39,7 +41,7 @@
 		};
 	});
 
-	const href = (stop: Stop) => `/ponto/${encodeURIComponent(operator)}/${encodeURIComponent(stop.id)}?nome=${encodeURIComponent(stop.name)}`;
+	const href = (stop: Stop) => `/ponto/${encodeURIComponent(stop.id)}?nome=${encodeURIComponent(stop.name)}`;
 </script>
 
 <div class="rounded-3xl bg-white p-4 shadow-sm dark:bg-slate-900">
@@ -55,6 +57,10 @@
 			class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pr-4 pl-11 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:focus:bg-slate-800"
 		/>
 	</div>
+
+	{#if unavailable.length > 0}
+		<div class="mt-3"><UnavailableNotice {unavailable} /></div>
+	{/if}
 
 	<div class="mt-3" aria-live="polite">
 		{#if error}

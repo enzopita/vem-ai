@@ -20,6 +20,15 @@ export interface StopBoard {
 	other_lines: Line[];
 }
 
+export interface RegionBoard extends StopBoard {
+	unavailable: string[];
+}
+
+export interface StopSearch {
+	stops: Stop[];
+	unavailable: string[];
+}
+
 export interface PushKeys {
 	p256dh: string;
 	auth: string;
@@ -28,7 +37,6 @@ export interface PushKeys {
 export interface SubscriptionIn {
 	endpoint: string;
 	keys: PushKeys;
-	operator: string;
 	stop_id: string;
 	stop_name: string;
 	line_id: string;
@@ -41,7 +49,7 @@ export interface Subscription extends SubscriptionIn {
 	id: number;
 }
 
-export interface Operator {
+export interface CollectorStatus {
 	name: string;
 	online: boolean;
 }
@@ -72,22 +80,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
 
-const stopPath = (operator: string, stopId: string) =>
-	`/api/operators/${encodeURIComponent(operator)}/stops/${encodeURIComponent(stopId)}`;
-
 const ownedPath = (sub: Subscription, suffix = '') =>
 	`/api/subscriptions/${sub.id}${suffix}?endpoint=${encodeURIComponent(sub.endpoint)}`;
 
 export const messageOf = (err: unknown) => (err instanceof Error ? err.message : 'Erro inesperado.');
 
 export const api = {
-	operators: () => request<Operator[]>('/api/operators'),
-	searchStops: (operator: string, q: string, signal?: AbortSignal) =>
-		request<Stop[]>(`/api/operators/${encodeURIComponent(operator)}/stops?q=${encodeURIComponent(q)}`, {
-			signal
-		}),
-	board: (operator: string, stopId: string, signal?: AbortSignal) =>
-		request<StopBoard>(`${stopPath(operator, stopId)}/board`, { signal }),
+	status: () => request<CollectorStatus[]>('/api/status'),
+	searchStops: (q: string, signal?: AbortSignal) =>
+		request<StopSearch>(`/api/stops?q=${encodeURIComponent(q)}`, { signal }),
+	board: (stopId: string, signal?: AbortSignal) =>
+		request<RegionBoard>(`/api/stops/${encodeURIComponent(stopId)}/board`, { signal }),
 	vapidKey: () => request<{ key: string }>('/api/vapid-public-key'),
 	createSubscription: (body: SubscriptionIn) =>
 		request<Subscription>('/api/subscriptions', {

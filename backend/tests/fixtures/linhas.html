@@ -1,0 +1,335 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta http-equiv="cleartype" content="on"> 
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+
+<link href="css_js/style.css?v=1755532215" rel="stylesheet" type="text/css"  />
+<script type="text/javascript" src="css_js/jquery-1.9.1.min.js" language="javascript"></script> 
+<script language="javascript" type="text/javascript" src="css_js/functions.js?v=1755532215" charset="iso-8859-1"></script>
+<link rel="stylesheet" href="css/all.css">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Quanto Tempo Falta?</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VJQHXG0RF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-8VJQHXG0RF');
+</script>
+
+<link rel="stylesheet" href="css_js/leaflet/leaflet.css" />
+<script src="css_js/leaflet/leaflet.js"></script>
+<script src="css_js/mapa_functions.js?v=1755532215"></script>
+
+</head>
+
+<body>
+        <header id="header">
+						<a href="javascript:history.go(-1)" class="btn_back"><i class="fa fa-chevron-left" style="font-size:1.4em;"></i></a>
+					<span class="logo">Quanto Tempo Falta?</span>
+		
+		</header>
+			
+		
+		<div id="middle" style="height:auto">
+	
+
+       							
+						<a href="pg_mapaLinha.php?idLinha=867d3887e0375c31b4b8ade5572d2b40df95141f" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 004</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ferry Boat / Praias / Conselheiro Nébias / Praça Mauá / Terminal Valongo / Conselheiro Nébias / Epitácio Pessoa</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=037b326b1119e1cd25f78e9ec0954580190fa102" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 005</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">BNH / Praias / Praça Independência / Canal 3 / Praça da República</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=2ecd397b94205c2a35f33d0970bf53d15a548a0c" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 007</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Barão do Rio Branco / Canal 1 / Marapé / José Menino / Praias / Conselheiro Nébias</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=6d331e6229365089461ea0a46b5710d42d2b41f9" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 008</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ferry Boat / Shopping Praiamar / Oswaldo Cochrane / Cons. Rodrigues Alves / Praça da República</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=b957de907eff86f023a06e31ac37a5e7ece2e0a5" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 010</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça República / Conselheiro Nébias / A. Pena / Canal 4 / Praias / Canal 2 / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=67c69ae9ae187d4edd33c3fe844f6a790d4d5b71" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 013</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Nova Cintra / Carvalho de Mendonça / Cons. Nébias / Praias / Canal 2 / Marapé</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=31de2072577d8d30bb1d1516f9d9a043ba6cd1d8" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 017</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça República / Santa Casa / Canal 2 / Praias / Canal 4 / Conselheiro Nébias / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=effa65b1c29d9b33afb6d639ae4a8dc27f4c49df" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 019</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça República / Conselheiro Nébias / A. Pena / Rebouças / Ferry Boat / Praias / Canal 1 / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=08393c1c4484013a7530af145a789fa63e145e96" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 020</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Mauá / Ana Costa / Praça Independência</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=6be03064f174d48ded031a51f2ed045e038d85e7" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 023</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça República / Canal 1 / Praias / Ferry Boat / Praça Rebouças / Conselheiro Nébias / centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=b71f8e5d3b1088258b8876e02b2345c2acc72831" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 025</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">José Menino / Canal 1 /  Centro / Pedro Lessa / Ferry Boat / Praias</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=b9b29f075aa24e5ff264b901b134f70a86723c2c" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 029</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Terminal Valongo / Afonso Pena / Rebouças / Ferry Boat / Praias / Ana Costa / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=2d8d35c3682bfc02d205d0319e807ca59bc8686c" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 030</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ferry Boat / Afonso Pena / Orquidário / José Menino</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=fa584c2086fe568b845fc65649fcb04e30111225" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 037</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Barão / Canal 1 / José Menino / Praias / Ana Costa</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=ec07852b6fb88d6d8989b49dc25b4888b198c735" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 040</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Barão / Conselheiro Nébias / Gonzaga / Pompeia / Orquidário / José Menino</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=72a5cae060dac6c23cd62ece9301a1c908e0f5ea" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 042</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Terminal Valongo / Ana Costa / Praias / Ferry Boat / Afonso Pena / Av. Cidade de Santos / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=cbed70f562c3e0df4a71b88b305bcbeab425ac16" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 052</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">José Menino / Praias / Ferry Boat / Pedro Lessa / Senador Dantas / Av. Perimetral / Centro / Santa Casa / Canal 1</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=0ffb89427f1894eea4e7b15e5de4335cb323ed48" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 053</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Barão / Canal 3 / Gonzaga / Pompeia / Orquidário / José Menino</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=12fe42c27a35db18dae865f41305c1ee4af6cd4f" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 054</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">BNH / Shopping Praiamar / Praias / Canal 2 / Praça da República</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=f90bb46975fb263eb220dcb0ca8088436f8d1cad" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 061</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">BNH / Macuco / Av. Cidade de Santos / Praça República / Nova Cintra / Caneleira / Nossa Senhora de Fátima</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=7dae71aaf82bc0ef31668c14a94f97ae688380bb" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 073</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Barão / Ana Costa / Praias / José Menino / Canal 1</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=aaf551b6bc6e08d03184ae5865b318f4cafbcfab" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 077</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Praça Barão / Conselheiro Nébias / Praias / Orquidário / Marapé / Canal 1</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=4e8bbeb7d5d9b06e9779d798ca7df5c8ab22c2c4" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 080</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ferry Boat / Praça Rebouças / Pedro Lessa / Rodrigues Alves / Conselheiro Nébias / Terminal Valongo</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=ff7c8455f7057a08a44c2acf937775290c5a3701" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 100</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ferry Boat / Praiamar / Canal 4 / Cons Nébias / Pça República / Morros / Term Valongo / Av. Portuária</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=3e458268dd10367a01f46ae84ce569f08da37a92" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 101</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Terminal Valongo  / Anchieta / São Manoel </span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=8b8d8759f72509f7c46c3fe4858315bc6da804d0" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 102</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ilhéu Alto / Rádio Clube / Saboó / Terminal Valongo</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=cf4ff62bf350cbdd285aa78f17eabbb45ad5ce5e" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 108</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Terminal Valongo / Anchieta / Piratininga</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=337bdf7fb03c3c10e6fe57d9d5ce2e7e84a7a177" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 118</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Term. Valongo / Rangel Pestana / São Bento / Nova Cintra / Canal 2 / Brás Cubas</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=558dba27ad5bf08bf07e2251164b34b57d43714d" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 139</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Dale Coutinho / Terminal Valongo / Ana Costa / Praias / BNH / Pedro Lessa</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=fc1e704c94ed8ad30ec0111740c442ce0804f6e7" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 152</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Canal 1 / José Menino / Praias / Ferry Boat / Afonso Pena / Canal 3</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=68864dd8d8a92a209d057294a7d434e559514662" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 153</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Jabaquara / Canal 2 / José Menino</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=6992636aa0a1a3ff6a2ef2da4773ac428e342cb2" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 154</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Ana Costa / Conselheiro Nébias</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=462a9b3ba5c161da250ec2a7e48beb3ad232f3f8" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 155</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Conselheiro Nébias / Ana Costa</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=66a3bd6ae0feef0c352210cd034ce9208d33ba90" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 156</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Canal 3 / Afonso Pena / Ferry Boat / Praias / Canal 1</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=822902febd4d95917b0bec4154d47a2093b396a1" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 158</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Ferry Boat / Pedro Lessa / Av. Portuária / Terminal Valongo / Saboó</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=892e7ed4c05f35b0d6377ac9734b0628d4ae3598" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 181</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Term. Valongo / Canal 2 / Campo Grande / Nova Cintra / São Bento / Brás Cubas</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=0075e7c576e0a075aeafe090180fdfc2f8a31e66" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 184</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">BNH / Conselheiro Nébias / Terminal Valongo / Saboó / São Jorge / Saboó </span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=f686f9dec5afbe0edba5576fbe48748eb348b6f4" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 191</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Senador Dantas / Pedro Lessa / Ferry Boat / Praias / Canal 2 / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=b76f3de0cf142d9250269d8eeba6f66e86dc9200" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 193</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Dale Coutinho / Terminal Valongo / Av. Cidade de Santos / BNH / Praiamar / Praias / Ana Costa</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=86b1ece3dfbd9ce90d07c315944dbef2722f8ea9" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 194</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube / Terminal Valongo / Canal 2 / Praias / Ferry Boat / Pedro Lessa / Centro</span>
+						
+						</a>
+					
+		 						
+						<a href="pg_mapaLinha.php?idLinha=4093113d12ca3eeb22be2e20f862edf035c05d07" class="select_lines">
+							<span style="font-size:1.2em; margin:8px 0 0 15px;"><strong>CIRCULAR 198</strong></span>
+							<span style="font-size:11px; margin:5px 0 10px 15px;">Rádio Clube > São Manoel</span>
+						
+						</a>
+					
+		 
+	</div>
+	
+	</body>
+</html>

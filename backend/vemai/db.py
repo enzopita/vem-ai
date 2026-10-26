@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     stop_name TEXT NOT NULL,
     line_id TEXT NOT NULL,
     line_label TEXT NOT NULL,
+    line_operator TEXT NOT NULL DEFAULT '',
     time TEXT NOT NULL,
     lead_min INTEGER NOT NULL,
     UNIQUE (endpoint, stop_id, line_id, time)
@@ -38,6 +39,7 @@ def _to_subscription(row: sqlite3.Row) -> Subscription:
         stop_name=row["stop_name"],
         line_id=row["line_id"],
         line_label=row["line_label"],
+        line_operator=row["line_operator"],
         time=row["time"],
         lead_min=row["lead_min"],
     )
@@ -49,6 +51,10 @@ class Database:
         Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
             conn.executescript(SCHEMA)
+            # Bancos criados antes da cor por tipo de linha não têm a coluna; os alertas antigos ficam sem operadora.
+            columns = {row["name"] for row in conn.execute("PRAGMA table_info(subscriptions)")}
+            if "line_operator" not in columns:
+                conn.execute("ALTER TABLE subscriptions ADD COLUMN line_operator TEXT NOT NULL DEFAULT ''")
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.path)
@@ -61,13 +67,13 @@ class Database:
         with closing(self._connect()) as conn, conn:
             row = conn.execute(
                 """INSERT INTO subscriptions
-                   (endpoint, p256dh, auth, stop_id, stop_name, line_id, line_label, time, lead_min)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   (endpoint, p256dh, auth, stop_id, stop_name, line_id, line_label, line_operator, time, lead_min)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT (endpoint, stop_id, line_id, time)
                    DO UPDATE SET lead_min = excluded.lead_min, p256dh = excluded.p256dh, auth = excluded.auth
                    RETURNING *""",
                 (sub.endpoint, sub.keys.p256dh, sub.keys.auth, sub.stop_id,
-                 sub.stop_name, sub.line_id, sub.line_label, sub.time, sub.lead_min),
+                 sub.stop_name, sub.line_id, sub.line_label, sub.line_operator, sub.time, sub.lead_min),
             ).fetchone()
         return _to_subscription(row)
 

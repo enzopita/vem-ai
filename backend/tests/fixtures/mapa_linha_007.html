@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta http-equiv="cleartype" content="on"> 
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+
+<link href="css_js/style.css?v=1755532215" rel="stylesheet" type="text/css"  />
+<script type="text/javascript" src="css_js/jquery-1.9.1.min.js" language="javascript"></script> 
+<script language="javascript" type="text/javascript" src="css_js/functions.js?v=1755532215" charset="iso-8859-1"></script>
+<link rel="stylesheet" href="css/all.css">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Quanto Tempo Falta?</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VJQHXG0RF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-8VJQHXG0RF');
+</script>
+
+<link rel="stylesheet" href="css_js/leaflet/leaflet.css" />
+<script src="css_js/leaflet/leaflet.js"></script>
+<script src="css_js/mapa_functions.js?v=1755532215"></script>
+
+</head>
+
+<body>
+        <header id="header">
+						<a href="javascript:history.go(-1)" class="btn_back"><i class="fa fa-chevron-left" style="font-size:1.4em;"></i></a>
+					<span class="logo">Quanto Tempo Falta?</span>
+		
+		</header>
+			
+		
+		<div id="middle" style="height:auto">
+		<div id="pn_header_line">
+		<span class="sp_line">CIRCULAR 007</span>
+		<a href="pg_FindLinesDt.php?idLinha=2ecd397b94205c2a35f33d0970bf53d15a548a0c" class="btn_line_details">Veja itinerário e horários</a>
+	</div>
+	
+	<div id="pn_main" class="pn_main">
+		<div id="mapa">
+		
+		</div>		
+	</div>
+	
+	<div id="pn_legenda">
+		<b style="float:left; display:inline; width:100%; margin:0 0 6px 0">Legenda</b>
+		
+		<i style="width:6px; height:10px; background-color:#2E8B57;float:left;display:inline;margin:2px 4px 0 0"></i>Percurso Ida<br>
+		<i style="width:6px; height:10px; background-color:#4682B4;float:left;display:inline;margin:2px 4px 0 0"></i>Percurso Volta<br><br>
+	</div>
+	
+	
+<script>
+
+var var_tempoAtualiza = 15000;
+var prefixos = [];
+
+$(document).ready(function() {
+
+$(window).load(medidasMapa);
+$(window).resize(medidasMapa);
+
+});
+
+initmap('mapa', 2, -23.9514005, -46.3486953, 16);
+
+//ADICIONAR PONTOS AO AUMENTAR O ZOOM
+var shelters = new Array();
+var shelter1 = 0;
+var shelterMarkers = new L.FeatureGroup();
+	
+function ExibePontosLinha(lat, lng, conteudo, icon, init) {
+	//PRECISO FAZER UM ARRAY DE PONTOS, COMO DOS VEICULOS
+	if (init != 1) {
+		shelter1 = new L.marker([lat, lng], {icon: icon});
+		shelterMarkers.addLayer(shelter1);
+		shelter1.bindPopup(conteudo);
+		
+		shelters.push(shelter1);
+	} else {
+		map.on('zoomend', function() {
+			if (map.getZoom() <16){
+					map.removeLayer(shelterMarkers);
+			}
+			else {
+					map.addLayer(shelterMarkers);
+				}
+		});
+	}
+}
+		ExibePontosLinha(-23.933837, -46.329265999999997, 'PRAÇA MAUÁ', PontosIcon, 0);
+				ExibePontosLinha(-23.933087, -46.325580000000002, 'PRAÇA DA REPÚBLICA, 63 ', PontosIcon, 0);
+				ExibePontosLinha(-23.934916659999999, -46.325466659999996, 'AV. SENADOR FEIJÓ, 90', PontosIcon, 0);
+				ExibePontosLinha(-23.937146389760667, -46.325643640468769, 'PRAÇA JOSÉ BONIFÁCIO, 37', PontosIcon, 0);
+				ExibePontosLinha(-23.939416000000001, -46.325885999999997, 'AV. SENADOR FEIJÓ, 214', PontosIcon, 0);
+				ExibePontosLinha(-23.943116660000001, -46.326283330000003, 'AV. SENADOR FEIJÓ, 356', PontosIcon, 0);
+				ExibePontosLinha(-23.943231001654642, -46.327309667782316, 'AV. RANGEL PESTANA, 68', PontosIcon, 0);
+				ExibePontosLinha(-23.942960672281018, -46.329578778521544, 'PRAÇA NARCISO DE ANDRADE', PontosIcon, 0);
+				ExibePontosLinha(-23.942662851970976, -46.332428460705849, 'AV. RANGEL PESTANA, 164', PontosIcon, 0);
+				ExibePontosLinha(-23.94429877793786, -46.335136542327113, 'AV. DOUTOR CLAUDIO LUIZ DA COSTA, (STA CASA)', PontosIcon, 0);
+				ExibePontosLinha(-23.948049000000001, -46.337933, 'AV. SENADOR PINHEIRO MACHADO, 334', PontosIcon, 0);
+				ExibePontosLinha(-23.949166999999999, -46.339753989999998, 'AV. SENADOR PINHEIRO MACHADO, 376', PontosIcon, 0);
+				ExibePontosLinha(-23.950467, -46.341799999999999, 'AV. SENADOR PINHEIRO MACHADO, 468', PontosIcon, 0);
+				ExibePontosLinha(-23.950722280000001, -46.344194590000001, 'RUA ANTÔNIO BENTO DO AMORIM, 72', PontosIcon, 0);
+				ExibePontosLinha(-23.952932457797186, -46.345377187963763, 'RUA SATURNINO DE BRITO, 78', PontosIcon, 0);
+				ExibePontosLinha(-23.953553274977988, -46.346348947061308, 'RUA NAPOLEÃO LAUREANO, 55', PontosIcon, 0);
+				ExibePontosLinha(-23.953166660000001, -46.349783330000001, 'RUA DOUTOR NAPOLEÃO LAUREANO, 140', PontosIcon, 0);
+				ExibePontosLinha(-23.953949999999999, -46.351583329999997, 'AV. NILO PEÇANHA, 1228', PontosIcon, 0);
+				ExibePontosLinha(-23.955749999999998, -46.351666659999999, 'AV. NILO PEÇANHA, 1432', PontosIcon, 0);
+				ExibePontosLinha(-23.956433329999999, -46.350433330000001, 'RUA DOUTOR CARVALHO DE MENDONÇA, 825', PontosIcon, 0);
+				ExibePontosLinha(-23.955950000000001, -46.348366660000003, 'RUA DOUTOR CARVALHO DE MENDONÇA, 751', PontosIcon, 0);
+				ExibePontosLinha(-23.955183330000001, -46.344583329999999, 'RUA DOUTOR CARVALHO DE MENDONÇA, 633', PontosIcon, 0);
+				ExibePontosLinha(-23.957039999999999, -46.344740999999999, 'AV. SENADOR PINHEIRO MACHADO, 678', PontosIcon, 0);
+				ExibePontosLinha(-23.958418000000002, -46.344907999999997, 'AV. SENADOR PINHEIRO MACHADO, 724', PontosIcon, 0);
+				ExibePontosLinha(-23.961210000000001, -46.345256999999997, 'AV. SENADOR PINHEIRO MACHADO, 842', PontosIcon, 0);
+				ExibePontosLinha(-23.963505999999999, -46.345519000000003, 'AV. SENADOR PINHEIRO MACHADO, 950', PontosIcon, 0);
+				ExibePontosLinha(-23.965295803921155, -46.348702839286808, 'AV. FRANCISCO GLICÉRIO, 680', PontosIcon, 0);
+				ExibePontosLinha(-23.965516659999999, -46.351633329999999, 'PRAÇA WASHINGTON, 38', PontosIcon, 0);
+				ExibePontosLinha(-23.967949999999998, -46.352849999999997, 'RUA SANTA CATARINA, 154', PontosIcon, 0);
+				ExibePontosLinha(-23.968451000000002, -46.35405299, 'AV. PRESIDENTE WILSON, 200', PontosIcon, 0);
+				ExibePontosLinha(-23.968585145839, -46.352986693382, 'AV. PRESIDENTE WILSON, 2015', PontosIcon, 0);
+				ExibePontosLinha(-23.968217507665901, -46.349588334560401, 'AV. PRESIDENTE WILSON, 163 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.967896, -46.347413000000003, 'AV. PRESIDENTE WILSON, 143LO', PontosIcon, 0);
+				ExibePontosLinha(-23.968077000000001, -46.344754999999999, 'AV. PRESIDENTE WILSON, 114 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.9682, -46.341213000000003, 'AV. PRESIDENTE WILSON, 78 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.968985, -46.336039, 'AV. PRESIDENTE WILSON, 33 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.969985000000001, -46.332157000000002, 'AV. VICENTE DE CARVALHO, 92 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.970569999999999, -46.329917000000002, 'AV. VICENTE DE CARVALHO, 59 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.971768000000001, -46.326464000000001, 'AV. VICENTE DE CARVALHO, 24 LO', PontosIcon, 0);
+				ExibePontosLinha(-23.971397052753002, -46.324106770790998, 'AV. CONSELHEIRO NÉBIAS, 833', PontosIcon, 0);
+				ExibePontosLinha(-23.968633790740828, -46.323835571469786, 'AV. CONSELHEIRO NÉBIAS, 771', PontosIcon, 0);
+				ExibePontosLinha(-23.964032788335999, -46.323394292913001, 'AV. CONSELHEIRO NÉBIAS, 671', PontosIcon, 0);
+				ExibePontosLinha(-23.959972, -46.322977999999999, 'AV. CONSELHEIRO NÉBIAS, 589', PontosIcon, 0);
+				ExibePontosLinha(-23.953811390350271, -46.322377279762399, 'AV. CONSELHEIRO NÉBIAS, 453', PontosIcon, 0);
+				ExibePontosLinha(-23.951252, -46.322161000000001, 'AV. CONSELHEIRO NÉBIAS, 401', PontosIcon, 0);
+				ExibePontosLinha(-23.946880903284949, -46.321723023313517, 'AV. CONSELHEIRO NÉBIAS, 301', PontosIcon, 0);
+				ExibePontosLinha(-23.944393999999999, -46.321500999999998, 'AV. CONSELHEIRO NÉBIAS, 251', PontosIcon, 0);
+				ExibePontosLinha(-23.940734811778601, -46.321148872375502, 'AV. CONSELHEIRO NÉBIAS, 187', PontosIcon, 0);
+				ExibePontosLinha(-23.937491000000001, -46.320898999999997, 'AV. CONSELHEIRO NÉBIAS, 107', PontosIcon, 0);
+				ExibePontosLinha(-23.935472171867058, -46.320655465044112, 'AV. CONSELHEIRO NÉBIAS, LO42', PontosIcon, 0);
+				ExibePontosLinha(-23.934648753156651, -46.321995416337714, 'RUA GENERAL CÂMARA, 274', PontosIcon, 0);
+				ExibePontosLinha(-23.934407, -46.324947000000002, 'RUA GENERAL CÂMARA, 208', PontosIcon, 0);
+				ExibePontosLinha(-23.934167218156908, -46.326293349266031, 'RUA GENERAL CÂMARA, 118', PontosIcon, 1);
+		
+var latlngIda = [
+{lat:-23.93382281588682, lng:-46.3291514747002},{lat:-23.93380316656501, lng:-46.329368294959053},{lat:-23.9337701292541, lng:-46.329426716934563},{lat:-23.933656431562941, lng:-46.3294387516267},{lat:-23.93325766661486, lng:-46.329384957305727},{lat:-23.933196117459829, lng:-46.329338390054772},{lat:-23.933203334318979, lng:-46.32915160184487},{lat:-23.933152707719319, lng:-46.32909199354895},{lat:-23.93262266254423, lng:-46.329073265589557},{lat:-23.932206903420632, lng:-46.329034930393881},{lat:-23.9319999190535, lng:-46.3290002113837},{lat:-23.931991744973381, lng:-46.328928859832217},{lat:-23.93206567207082, lng:-46.328557957662518},{lat:-23.932118462235131, lng:-46.328241804368538},{lat:-23.932152776555562, lng:-46.327931237936561},{lat:-23.932197141145782, lng:-46.327394500212179},{lat:-23.932196975457011, lng:-46.327390512054777},{lat:-23.932173856214039, lng:-46.327114417387413},{lat:-23.932338907244009, lng:-46.326924681626913},{lat:-23.932609995326569, lng:-46.326920103093173},{lat:-23.93272313866624, lng:-46.3268879481123},{lat:-23.93284184405325, lng:-46.326835063437692},{lat:-23.93295214966016, lng:-46.326307341295788},{lat:-23.933062497576831, lng:-46.325297113454},{lat:-23.934309744845539, lng:-46.32538017474819},{lat:-23.936332762248561, lng:-46.325501024039973},{lat:-23.93826219987757, lng:-46.325644483805412},{lat:-23.941850809492781, lng:-46.326089717149472},{lat:-23.94335260463167, lng:-46.326278379480321},{lat:-23.943239389312961, lng:-46.327382715691591},{lat:-23.9429687351446, lng:-46.329572615491777},{lat:-23.94292850539971, lng:-46.3298135951768},{lat:-23.94292488195082, lng:-46.330017802020919},{lat:-23.942890357559349, lng:-46.330348415408963},{lat:-23.942522902386489, lng:-46.334751239530547},{lat:-23.943407778012251, lng:-46.334875645587708},{lat:-23.946616572407262, lng:-46.335758477964212},{lat:-23.947112999905251, lng:-46.336497996704153},{lat:-23.947198169046271, lng:-46.336581879964207},{lat:-23.948262720744211, lng:-46.338278147565241},{lat:-23.949105831120871, lng:-46.339648251995641},{lat:-23.95094384601261, lng:-46.34256865260074},{lat:-23.950873021874429, lng:-46.342715951900367},{lat:-23.9505974720171, lng:-46.34508024502999},{lat:-23.95154352974928, lng:-46.345252976054013},{lat:-23.95162272616356, lng:-46.345195220314011},{lat:-23.95168014563194, lng:-46.34516038222597},{lat:-23.951829965007651, lng:-46.345152952569137},{lat:-23.953707151597118, lng:-46.345416703405412},{lat:-23.953279877943071, lng:-46.348954632666093},{lat:-23.953111695506131, lng:-46.350009335756489},{lat:-23.95295233778036, lng:-46.351102756769748},{lat:-23.953261816172919, lng:-46.351286671781111},{lat:-23.953474036024549, lng:-46.351383477172078},{lat:-23.953703948427059, lng:-46.351441579397033},{lat:-23.954004607237529, lng:-46.351490018617582},{lat:-23.955041638000839, lng:-46.351616027184932},{lat:-23.955545692635159, lng:-46.35165482706887},{lat:-23.9558640541229, lng:-46.351606502005957},{lat:-23.9560586126995, lng:-46.351548477230821},{lat:-23.95634162256512, lng:-46.35136466969513},{lat:-23.95655388503517, lng:-46.351190526006192},{lat:-23.956558446230272, lng:-46.351059664379243},{lat:-23.956450756941958, lng:-46.350540748660521},{lat:-23.956307147565621, lng:-46.34998251600576},{lat:-23.956185097571051, lng:-46.349377115708442},{lat:-23.955969714055058, lng:-46.3482742695737},{lat:-23.955919449670549, lng:-46.348061993732387},{lat:-23.95584048833479, lng:-46.34754308520624},{lat:-23.955704070498719, lng:-46.346859060555829},{lat:-23.955438389465069, lng:-46.345656131651893},{lat:-23.9551870493013, lng:-46.344547542187179},{lat:-23.955398855335591, lng:-46.344539060764752},{lat:-23.956141666587769, lng:-46.3446262611872},{lat:-23.95758305610164, lng:-46.344810322617327},{lat:-23.958553809219651, lng:-46.344907228467441},{lat:-23.95993329856725, lng:-46.345081611457609},{lat:-23.961383537210409, lng:-46.345256005300939},{lat:-23.96161345643355, lng:-46.345275392458063},{lat:-23.96417160993483, lng:-46.345595115972642},{lat:-23.965382328851408, lng:-46.348823790499793},{lat:-23.965134699136119, lng:-46.34900761276954},{lat:-23.96501972051016, lng:-46.34913339904206},{lat:-23.96492242200279, lng:-46.349307571682807},{lat:-23.964869326990971, lng:-46.34953014608066},{lat:-23.964886975689609, lng:-46.349801104708312},{lat:-23.964951503377922, lng:-46.34995517053364},{lat:-23.96535811706087, lng:-46.351077817463107},{lat:-23.966021010085271, lng:-46.353071491817758},{lat:-23.968223003153469, lng:-46.35267515825614},{lat:-23.96830259559535, lng:-46.352646141859744},{lat:-23.968364368987491, lng:-46.353410692681},{lat:-23.968501262918679, lng:-46.354671691101068},{lat:-23.968639168268449, lng:-46.355527895433468},{lat:-23.968647470465491, lng:-46.355820915839352},{lat:-23.968563676510811, lng:-46.356461883060561},{lat:-23.968576225265181, lng:-46.35649851166194},{lat:-23.968622236557248, lng:-46.356544306826031},{lat:-23.968689179814771, lng:-46.356521429997152},{lat:-23.968747761957069, lng:-46.35646650200038},{lat:-23.968772878267512, lng:-46.356393252527383},{lat:-23.96886004810867, lng:-46.356041691741389},{lat:-23.96883251385626, lng:-46.355628539407448},];
+
+
+var latlngVolta = [
+{lat:-23.96882938341253, lng:-46.355631404028372},{lat:-23.968470927097339, lng:-46.352354891873873},{lat:-23.96843753268946, lng:-46.351887890984621},{lat:-23.968433412814711, lng:-46.351530770817632},{lat:-23.96817015766279, lng:-46.349499027950458},{lat:-23.9679984432872, lng:-46.348438708168644},{lat:-23.96788557719719, lng:-46.347802289475517},{lat:-23.9678814469447, lng:-46.347349255195219},{lat:-23.968007177676348, lng:-46.345705609124877},{lat:-23.96801980544792, lng:-46.345082602592747},{lat:-23.96803657558387, lng:-46.344785008025582},{lat:-23.968120207132781, lng:-46.3428575243945},{lat:-23.968125634769208, lng:-46.342336996379132},{lat:-23.968210190565351, lng:-46.340959574394759},{lat:-23.968304272481969, lng:-46.340560014624138},{lat:-23.968376003798131, lng:-46.340214391479037},{lat:-23.968376025825432, lng:-46.33996685183},{lat:-23.968372005950251, lng:-46.339745834142363},{lat:-23.96839626296136, lng:-46.339489456696121},{lat:-23.968444777138661, lng:-46.338958716655327},{lat:-23.968444805877649, lng:-46.338600668405732},{lat:-23.968594321591588, lng:-46.337734292590419},{lat:-23.968634728506881, lng:-46.33752601700845},{lat:-23.96881656025521, lng:-46.336527030777653},{lat:-23.96905684099638, lng:-46.335438628550072},{lat:-23.969125519782889, lng:-46.3352176147618},{lat:-23.969299232428991, lng:-46.33471684949054},{lat:-23.9694163891176, lng:-46.334323442366809},{lat:-23.9694971927671, lng:-46.333921192370937},{lat:-23.969533556076289, lng:-46.333700175159187},{lat:-23.969674951018661, lng:-46.333184632615513},{lat:-23.96969919577953, lng:-46.332962448937423},{lat:-23.96976787592558, lng:-46.332626502295753},{lat:-23.969804236416589, lng:-46.332436426790039},{lat:-23.970037945025211, lng:-46.331651200686061},{lat:-23.970106618586051, lng:-46.331430183151511},{lat:-23.97055665828394, lng:-46.329918699882967},{lat:-23.970665723863711, lng:-46.32956506848322},{lat:-23.970736002350659, lng:-46.329392690245022},{lat:-23.970792553818981, lng:-46.32923355615651},{lat:-23.970889498980458, lng:-46.32896391189783},{lat:-23.970925853699111, lng:-46.328844560802757},{lat:-23.970954130503792, lng:-46.328694266320753},{lat:-23.971005088637849, lng:-46.32842654253178},{lat:-23.97104951974843, lng:-46.328298349018382},{lat:-23.971166660656429, lng:-46.328006603159857},{lat:-23.97169561283631, lng:-46.3266316716227},{lat:-23.971857181067229, lng:-46.3261940445788},{lat:-23.972087411673279, lng:-46.32556843289337},{lat:-23.97217627278841, lng:-46.3253385557367},{lat:-23.972293407494622, lng:-46.325161735001338},{lat:-23.972450933603049, lng:-46.324927448525521},{lat:-23.972685200366751, lng:-46.324414668481353},{lat:-23.97277809841118, lng:-46.324158277903457},{lat:-23.972923504513751, lng:-46.323786951554332},{lat:-23.97295177749459, lng:-46.323680858173873},{lat:-23.972967933290189, lng:-46.323610129128681},{lat:-23.972947735598691, lng:-46.323495195581962},{lat:-23.9729154212831, lng:-46.323450991071923},{lat:-23.9728709897337, lng:-46.323437730637053},{lat:-23.972810402242281, lng:-46.323477517231552},{lat:-23.97252766837375, lng:-46.324131759614083},{lat:-23.972459003440619, lng:-46.32421575014876},{lat:-23.972279371667611, lng:-46.324234071331851},{lat:-23.970566756060471, lng:-46.324030755975819},{lat:-23.968450698930148, lng:-46.323853744097441},{lat:-23.965107955644651, lng:-46.323523394459457},{lat:-23.963031239552532, lng:-46.323322849233563},{lat:-23.96078836304758, lng:-46.323086895081872},{lat:-23.959476429686369, lng:-46.322945333971788},{lat:-23.957758682356349, lng:-46.322780191984393},{lat:-23.957650851999929, lng:-46.322768394754142},{lat:-23.955798101229441, lng:-46.322579651516122},{lat:-23.95469821941796, lng:-46.322485277919647},{lat:-23.953199037105879, lng:-46.322331940318819},{lat:-23.951770964849018, lng:-46.322178596245479},{lat:-23.95026133600269, lng:-46.322048861642124},{lat:-23.949193807765742, lng:-46.321954495202},{lat:-23.945783296221169, lng:-46.321600636464119},{lat:-23.945233347342558, lng:-46.321518059212451},{lat:-23.9422029676666, lng:-46.321282216112991},{lat:-23.939333298457552, lng:-46.321022770314322},{lat:-23.93921214562814, lng:-46.321072187542264},{lat:-23.939147481573389, lng:-46.321072187110254},{lat:-23.93731532906633, lng:-46.320867865677741},{lat:-23.93481718797883, lng:-46.32062427839498},{lat:-23.934644842143509, lng:-46.32227776059333},{lat:-23.934400603227871, lng:-46.32436873118165},{lat:-23.934297482073369, lng:-46.325387001834137},{lat:-23.934182533145581, lng:-46.32655825854885},{lat:-23.934139423094852, lng:-46.327069204589009},{lat:-23.933902318440708, lng:-46.32777666756359},{lat:-23.933869373609259, lng:-46.328506670746478},{lat:-23.93382523080351, lng:-46.329146047127047},];
+
+var polylineIda = L.polyline(latlngIda, {color: '#2E8B57', weight:5}).addTo(map);
+var polylineVolta = L.polyline(latlngVolta, {color: '#4682B4',weight:5}).addTo(map);
+
+// zoom the map to the polyline
+	map.fitBounds(polylineIda.getBounds());
+	map.fitBounds(polylineVolta.getBounds());
+
+obj_atualiza = new montaXMLHTTP();
+
+function AtualizaCarros(){
+	
+	var var_linha = 365;
+	var result = '';
+	var temp_prefixos = '';
+	var myobj;
+	var conta = 0;
+				
+	obj_atualiza.open("POST","parts/update_bus.php",true);
+	obj_atualiza.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		
+	obj_atualiza.onreadystatechange = function(){
+		if(obj_atualiza.readyState == 1){ 
+				//conteudo.innerHTML = 'Carregando...';
+		}
+		if(obj_atualiza.readyState == 4){
+				
+				result = obj_atualiza.responseText;
+
+				for(var i=0;i<result.length;i++){
+					if(result[i] != '}') {
+						temp_prefixos = temp_prefixos + result[i];
+					} else {
+						temp_prefixos = temp_prefixos + result[i];
+						i++;
+						myobj = JSON.parse( temp_prefixos );
+						prefixos[conta] = myobj;
+						conta++;
+						temp_prefixos = '';
+					}
+				}
+				 
+				ApagarVeiculos();
+				ExibeVeiculosLista();
+				
+		}
+	}
+	
+	obj_atualiza.send("linha_id="+var_linha);
+	//alert(pontos);
+}
+
+function TempoAtualiza(){
+	time = setInterval("AtualizaCarros()", var_tempoAtualiza);
+	resize = false;
+}
+
+AtualizaCarros();
+TempoAtualiza();
+
+
+</script>
+
+
+	
+	</div>
+	
+	</body>
+</html>
+
+
+		

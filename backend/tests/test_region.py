@@ -1,5 +1,5 @@
 from vemai.models import Line, Prediction, Stop, StopBoard
-from vemai.region import merge_boards, merge_stops
+from vemai.region import merge_boards, merge_stops, tag_operator
 
 A, B, C = Line(id="a", label="184"), Line(id="b", label="956"), Line(id="c", label="04")
 
@@ -39,3 +39,11 @@ def test_merge_boards_other_lines_union_without_lines_that_have_predictions():
 def test_merge_boards_of_nothing_is_empty():
     merged = merge_boards("9306", [])
     assert merged.predictions == [] and merged.other_lines == []
+
+
+def test_tag_operator_marks_every_line_and_survives_the_merge():
+    pira = tag_operator(board([(A, "1", 3)], other=[C]), "piracicabana")
+    brm = tag_operator(board([(B, "2", 5)]), "brmobilidadebs")
+    merged = merge_boards("9306", [pira, brm])
+    assert [(p.line.label, p.line.operator) for p in merged.predictions] == [("184", "piracicabana"), ("956", "brmobilidadebs")]
+    assert [(l.label, l.operator) for l in merged.other_lines] == [("04", "piracicabana")]

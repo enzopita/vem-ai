@@ -3,21 +3,37 @@ import logging
 import os
 from collections.abc import Callable
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Path, Query
 
 from vemai.alerts import Alert, detect, is_active
 from vemai.db import Database
-from vemai.models import RegionBoard, Stop, StopSearch, Subscription, SubscriptionIn
+from vemai.models import (
+    CatalogStop,
+    Line,
+    LineDetail,
+    LineSearch,
+    RegionBoard,
+    Stop,
+    StopBoard,
+    StopCatalog,
+    StopSearch,
+    Subscription,
+    SubscriptionIn,
+    Vehicle,
+)
 from vemai.push import PushSender, SubscriptionGone
-from vemai.region import merge_boards, merge_stops
+from vemai.region import merge_boards, merge_catalogs, merge_stops, search_lines, tag_operator
 
 log = logging.getLogger("vemai.central")
 TZ = ZoneInfo("America/Sao_Paulo")
 COLLECTOR_TIMEOUT_S = 10
+LINE_ID = r"^[0-9a-f]{40}$"
+# Itinerário e horários quase nunca mudam; as posições dos veículos nunca passam por cache.
+LINE_DETAIL_TTL = timedelta(hours=6)
 
 
 class CollectorError(Exception):
@@ -103,18 +119,22 @@ def create_app(
     http = http or httpx.AsyncClient(timeout=15)
     interval = monitor_interval_s or float(os.environ.get("MONITOR_INTERVAL_S", "30"))
 
-    async def collector_get(op: str, path: str, params: dict | None = None, timeout: float = COLLECTOR_TIMEOUT_S):
+    async def collector_get(
+        op: str, path: str, params: dict | None = None, timeout: float = COLLECTOR_TIMEOUT_S, missing_ok: bool = False
+    ):
         try:
             resp = await http.get(f"{collectors[op]}{path}", params=params, timeout=timeout)
+            if missing_ok and resp.status_code == 404:
+                return None
             resp.raise_for_status()
             return resp.json()
         except (httpx.HTTPError, ValueError) as exc:
             raise CollectorError(op) from exc
 
-    async def scatter(path: str, params: dict | None = None) -> tuple[list, list[str]]:
-        """Consulta todos os coletores da região; devolve as respostas e as operadoras que falharam."""
+    async def scatter(path: str, params: dict | None = None) -> tuple[dict, list[str]]:
+        """Consulta todos os coletores da região; devolve as respostas por operadora e as que falharam."""
         outcomes = await asyncio.gather(*(collector_get(op, path, params) for op in collectors), return_exceptions=True)
-        results, unavailable = [], []
+        results, unavailable = {}, []
         for op, outcome in zip(collectors, outcomes):
             if isinstance(outcome, CollectorError):
                 log.warning("coletor %s indisponível em %s", op, path)
@@ -122,15 +142,56 @@ def create_app(
             elif isinstance(outcome, BaseException):
                 raise outcome
             else:
-                results.append(outcome)
+                results[op] = outcome
         if not results:
             raise HTTPException(503, "nenhum coletor da região está disponível")
         return results, unavailable
 
     async def fetch_board(stop_id: str) -> RegionBoard:
         results, unavailable = await scatter(f"/stops/{stop_id}/board")
-        boards = [RegionBoard.model_validate(r) for r in results]
+        boards = [tag_operator(StopBoard.model_validate(r), op) for op, r in results.items()]
         return merge_boards(stop_id, boards).model_copy(update={"unavailable": unavailable})
+
+    async def find_line(path: str, operator: str | None) -> tuple[str, object]:
+        """Pergunta à operadora indicada, ou a todas; devolve a primeira (na ordem de COLLECTORS) que conhece a linha."""
+        if operator is not None and operator not in collectors:
+            raise HTTPException(404, "operadora desconhecida")
+        ops = [operator] if operator else list(collectors)
+        outcomes = await asyncio.gather(*(collector_get(op, path, missing_ok=True) for op in ops), return_exceptions=True)
+        failed = []
+        for op, outcome in zip(ops, outcomes):
+            if isinstance(outcome, CollectorError):
+                failed.append(op)
+            elif isinstance(outcome, BaseException):
+                raise outcome
+            elif outcome is not None:
+                return op, outcome
+        # A linha pode ser justamente de quem falhou, então não dá para afirmar que ela não existe.
+        if failed:
+            raise HTTPException(502, f"coletor indisponível: {', '.join(failed)}")
+        raise HTTPException(404, "linha não encontrada")
+
+    line_details: dict[str, tuple[datetime, LineDetail]] = {}
+
+    def cached_line(line_id: str, operator: str | None) -> LineDetail | None:
+        hit = line_details.get(line_id)
+        if hit is None or clock() - hit[0] > LINE_DETAIL_TTL:
+            return None
+        if operator is not None and hit[1].operator != operator:
+            return None
+        return hit[1]
+
+    # Lista de linhas da região, guardada como o detalhe da linha; só uma lista completa entra no cache.
+    all_lines: list[tuple[datetime, list[Line]]] = []
+
+    async def region_lines() -> tuple[list[Line], list[str]]:
+        if all_lines and clock() - all_lines[0][0] <= LINE_DETAIL_TTL:
+            return all_lines[0][1], []
+        results, unavailable = await scatter("/lines")
+        lines = [Line.model_validate(l).model_copy(update={"operator": op}) for op, r in results.items() for l in r]
+        if not unavailable:
+            all_lines[:] = [(clock(), lines)]
+        return lines, unavailable
 
     monitor = Monitor(db, fetch_board, sender, clock)
 
@@ -159,12 +220,40 @@ def create_app(
     @app.get("/api/stops")
     async def stops(q: str = Query(min_length=3)) -> StopSearch:
         results, unavailable = await scatter("/stops", {"q": q})
-        merged = merge_stops([[Stop.model_validate(s) for s in r] for r in results])
+        merged = merge_stops([[Stop.model_validate(s) for s in r] for r in results.values()])
         return StopSearch(stops=merged, unavailable=unavailable)
+
+    @app.get("/api/stops/catalog")
+    async def stops_catalog() -> StopCatalog:
+        results, unavailable = await scatter("/stops/catalog")
+        merged = merge_catalogs([[CatalogStop.model_validate(s) for s in r] for r in results.values()])
+        return StopCatalog(stops=merged, unavailable=unavailable)
 
     @app.get("/api/stops/{stop_id}/board")
     async def board(stop_id: str) -> RegionBoard:
         return await fetch_board(stop_id)
+
+    @app.get("/api/lines")
+    async def lines(q: str = Query(min_length=1)) -> LineSearch:
+        found, unavailable = await region_lines()
+        return LineSearch(lines=search_lines(found, q), unavailable=unavailable)
+
+    @app.get("/api/lines/{line_id}")
+    async def line_detail(line_id: str = Path(pattern=LINE_ID), operator: str | None = None) -> LineDetail:
+        if detail := cached_line(line_id, operator):
+            return detail
+        op, raw = await find_line(f"/lines/{line_id}", operator)
+        detail = LineDetail.model_validate(raw).model_copy(update={"operator": op})
+        line_details[line_id] = (clock(), detail)
+        return detail
+
+    @app.get("/api/lines/{line_id}/vehicles")
+    async def line_vehicles(line_id: str = Path(pattern=LINE_ID), operator: str | None = None) -> list[Vehicle]:
+        # Quem já abriu a linha sabe a operadora; assim o polling não pergunta a todos os coletores.
+        if operator is None and (known := cached_line(line_id, None)):
+            operator = known.operator
+        _, raw = await find_line(f"/lines/{line_id}/vehicles", operator)
+        return [Vehicle.model_validate(v) for v in raw]
 
     @app.get("/api/vapid-public-key")
     async def vapid_public_key() -> dict[str, str]:

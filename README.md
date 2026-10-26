@@ -56,6 +56,7 @@ Abra http://localhost:8080 (mude com `FRONTEND_PORT`). Sobe o front-end, a centr
 | Variável | Serviço | Padrão | Descrição |
 |---|---|---|---|
 | `OPERATOR_BASE_URL` | coletor | (obrigatória) | URL base do site da operadora |
+| `CATALOG_PATH` | coletor | `data/catalog-<host>.json` | Arquivo do catálogo de pontos com coordenadas, um por operadora |
 | `COLLECTORS` | central | (vazia) | Lista `nome=url` separada por vírgulas |
 | `MONITOR_INTERVAL_S` | central | `30` | Intervalo do monitor, em segundos |
 | `DB_PATH` | central | `data/vemai.db` | Arquivo SQLite |
@@ -68,7 +69,10 @@ A chave VAPID é gerada na primeira execução em `data/vapid_private.pem`.
 | Rota | Função |
 |---|---|
 | `GET /api/stops?q=` | Busca pontos em todos os coletores (mín. 3 letras). Devolve `{stops, unavailable}` |
+| `GET /api/stops/catalog` | Todos os pontos da região com coordenadas, `{stops: [{id, name, lat, lng}], unavailable}` |
 | `GET /api/stops/{stop_id}/board` | Previsões unidas de todas as operadoras, mais `unavailable` |
+| `GET /api/lines/{line_id}?operator=` | Itinerário, traçado, pontos e horários da linha, com a operadora que a atende. 404 se nenhuma a conhece |
+| `GET /api/lines/{line_id}/vehicles?operator=` | Posições ao vivo dos veículos da linha `[{prefix, driver, lat, lng, direction, seen_at}]`, sem cache |
 | `GET /api/status` | `[{name, online}]` por coletor |
 | `GET /api/vapid-public-key` | Chave pública VAPID |
 | `POST /api/subscriptions` | Cria um alerta (ponto, linha, horário, antecedência) |

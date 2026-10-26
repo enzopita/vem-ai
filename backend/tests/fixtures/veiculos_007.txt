@@ -1,0 +1,2 @@
+{"prefixo":"4407","lat":-23.971397052753002,"lng":-46.324106770790998, "sentido":2, "conteudo":"<span><b>Prefixo:</b> 4407</br><b>Linha: </b>07<br><b>Motorista: </b>ALEX<br><b>Sentido: </b>José Menino > Praça Mauá<br><b>Horário: </b>12:10:26<br></span>"},{"prefixo":"5016","lat":-23.933679999999999,"lng":-46.325420000000001, "sentido":1, "conteudo":"<span><b>Prefixo:</b> 5016</br><b>Linha: </b>07<br><b>Motorista: </b>FABRICCIO<br><b>Sentido: </b>Praça Mauá > José Menino<br><b>Horário: </b>12:10:13<br></span>"},
+

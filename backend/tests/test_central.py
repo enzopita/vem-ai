@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import httpx
 import pytest
@@ -13,6 +13,11 @@ LINE = {"id": "aaa", "label": "184"}
 
 
 LINE2 = {"id": "bbb", "label": "956"}
+
+BR_LINE = "c9e8f2f3b02a56c2c3360ac8b1834c1da3f90412"
+NO_LINE = "0" * 40
+BR_DETAIL = {"id": BR_LINE, "label": "902", "description": "Tancredo", "directions": [], "stops": [], "schedules": []}
+BR_BUS = {"prefix": "7001", "driver": "ANA", "lat": -23.9, "lng": -46.3, "direction": "ida", "seen_at": "12:00:00"}
 
 
 def board_json(*preds, line=LINE):
@@ -29,7 +34,21 @@ class FakeCollector:
     def __init__(self):
         self.boards = {"c1": board_json(("4430", 5)), "c2": board_json(("9001", 7), line=LINE2)}
         self.stops = {"c1": [{"id": "9306", "name": "AV. X"}], "c2": [{"id": "9306", "name": "AV. X"}, {"id": "1", "name": "RUA A"}]}
+        self.catalogs = {
+            "c1": [{"id": "9306", "name": "AV. X, 107", "lat": -23.9, "lng": -46.3}],
+            "c2": [
+                {"id": "9306", "name": "AV. X", "lat": -23.9, "lng": -46.3},
+                {"id": "1", "name": "RUA A", "lat": -23.8, "lng": -46.2},
+            ],
+        }
+        self.lines = {"c2": {BR_LINE: BR_DETAIL}}
+        self.line_lists = {
+            "c1": [{"id": "l1", "label": "154", "description": "Valongo / Ponta da Praia"}],
+            "c2": [{"id": "l2", "label": "956", "description": "Jóquei Clube / Conselheiro Nébias"}],
+        }
+        self.vehicles = {"c2": {BR_LINE: [BR_BUS]}}
         self.down_hosts: set[str] = set()
+        self.calls: list[tuple[str, str]] = []
 
     @property
     def down(self):
@@ -44,10 +63,19 @@ class FakeCollector:
         if host in self.down_hosts:
             raise httpx.ConnectError("offline")
         path = request.url.path
+        self.calls.append((host, path))
+        if path == "/lines":
+            return httpx.Response(200, json=self.line_lists[host])
+        if path.startswith("/lines/"):
+            parts = path.split("/")
+            found = (self.vehicles if path.endswith("/vehicles") else self.lines).get(host, {}).get(parts[2])
+            return httpx.Response(200, json=found) if found is not None else httpx.Response(404, json={"detail": "x"})
         if path == "/health":
             return httpx.Response(200, json={"status": "ok"})
         if path == "/stops":
             return httpx.Response(200, json=self.stops[host])
+        if path == "/stops/catalog":
+            return httpx.Response(200, json=self.catalogs[host])
         return httpx.Response(200, json=self.boards[host])
 
 
@@ -111,6 +139,18 @@ async def test_stops_search_unions_the_region(env):
     assert len(body["stops"]) == 2
     assert body["unavailable"] == []
     assert (await client.get("/api/stops", params={"q": "co"})).status_code == 422
+
+
+async def test_catalog_merges_the_region_by_stop_id(env):
+    client, _, collector, *_ = env
+    body = (await client.get("/api/stops/catalog")).json()
+    assert [(s["id"], s["name"]) for s in body["stops"]] == [("1", "RUA A"), ("9306", "AV. X, 107")]
+    assert body["unavailable"] == []
+
+    collector.down_hosts = {"c2"}
+    body = (await client.get("/api/stops/catalog")).json()
+    assert [s["id"] for s in body["stops"]] == ["9306"]
+    assert body["unavailable"] == ["brmobilidadebs"]
 
 
 async def test_board_mixes_lines_of_every_operator(env):
@@ -249,3 +289,59 @@ async def test_monitor_partial_board_does_not_fake_vanished_but_still_alerts_arr
     collector.boards["c2"] = board_json(line=LINE2)
     await monitor.cycle()
     assert sum("GPS" in s[2] for s in sender.sent) == 1
+
+
+async def test_line_detail_asks_every_collector_and_names_the_operator(env):
+    client, *_ = env
+    resp = await client.get(f"/api/lines/{BR_LINE}")
+    assert resp.json() == BR_DETAIL | {"operator": "brmobilidadebs"}
+    assert (await client.get(f"/api/lines/{NO_LINE}")).status_code == 404
+
+
+async def test_line_detail_with_operator_asks_only_that_collector(env):
+    client, _, collector, *_ = env
+    assert (await client.get(f"/api/lines/{BR_LINE}", params={"operator": "piracicabana"})).status_code == 404
+    assert {host for host, _ in collector.calls} == {"c1"}
+    assert (await client.get(f"/api/lines/{BR_LINE}", params={"operator": "nenhuma"})).status_code == 404
+
+
+async def test_line_detail_is_cached_for_hours(env):
+    client, _, collector, _, now = env
+    await client.get(f"/api/lines/{BR_LINE}")
+    collector.down = True
+    assert (await client.get(f"/api/lines/{BR_LINE}")).json()["label"] == "902"
+    now["value"] += timedelta(hours=7)
+    assert (await client.get(f"/api/lines/{BR_LINE}")).status_code == 502
+
+
+async def test_line_unknown_while_a_collector_is_down_is_502(env):
+    client, _, collector, *_ = env
+    collector.down_hosts = {"c2"}
+    assert (await client.get(f"/api/lines/{BR_LINE}")).status_code == 502
+
+
+async def test_vehicles_are_live_and_routed_to_the_known_operator(env):
+    client, _, collector, *_ = env
+    assert (await client.get(f"/api/lines/{BR_LINE}/vehicles")).json() == [BR_BUS]
+
+    await client.get(f"/api/lines/{BR_LINE}")
+    collector.vehicles["c2"][BR_LINE] = []
+    collector.calls.clear()
+    assert (await client.get(f"/api/lines/{BR_LINE}/vehicles")).json() == []
+    assert collector.calls == [("c2", f"/lines/{BR_LINE}/vehicles")]
+    assert (await client.get(f"/api/lines/{NO_LINE}/vehicles")).status_code == 404
+
+
+async def test_line_search_spans_operators_and_tags_each_line(env):
+    client, _, collector, _, _ = env
+    collector.down_hosts = {"c2"}
+    partial = (await client.get("/api/lines", params={"q": "nebias"})).json()
+    assert partial == {"lines": [], "unavailable": ["brmobilidadebs"]}
+    collector.down_hosts = set()
+    found = (await client.get("/api/lines", params={"q": "956"})).json()
+    assert [(l["label"], l["operator"]) for l in found["lines"]] == [("956", "brmobilidadebs")]
+    assert found["unavailable"] == []
+    # A lista completa fica guardada: um coletor caindo depois não esconde as linhas dele.
+    collector.down_hosts = {"c2"}
+    cached = (await client.get("/api/lines", params={"q": "nebias"})).json()
+    assert [l["label"] for l in cached["lines"]] == ["956"]

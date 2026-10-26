@@ -114,8 +114,10 @@ async def test_subscription_create_list_delete(env):
     assert [s["id"] for s in listed.json()] == [sub_id]
     assert (await client.get("/api/subscriptions", params={"endpoint": "outro"})).json() == []
 
-    assert (await client.delete(f"/api/subscriptions/{sub_id}")).status_code == 204
-    assert (await client.delete(f"/api/subscriptions/{sub_id}")).status_code == 404
+    owner = {"endpoint": SUB["endpoint"]}
+    assert (await client.delete(f"/api/subscriptions/{sub_id}", params={"endpoint": "outro"})).status_code == 404
+    assert (await client.delete(f"/api/subscriptions/{sub_id}", params=owner)).status_code == 204
+    assert (await client.delete(f"/api/subscriptions/{sub_id}", params=owner)).status_code == 404
 
 
 async def test_subscription_validation(env):
@@ -128,10 +130,10 @@ async def test_subscription_validation(env):
 async def test_test_push_endpoint_sends_and_cleans_gone_subscriptions(env):
     client, _, _, sender, _ = env
     sub_id = (await client.post("/api/subscriptions", json=SUB)).json()["id"]
-    assert (await client.post(f"/api/subscriptions/{sub_id}/test")).status_code == 204
+    assert (await client.post(f"/api/subscriptions/{sub_id}/test", params={"endpoint": SUB["endpoint"]})).status_code == 204
     assert [s[0] for s in sender.sent] == [sub_id]
     sender.gone = True
-    assert (await client.post(f"/api/subscriptions/{sub_id}/test")).status_code == 410
+    assert (await client.post(f"/api/subscriptions/{sub_id}/test", params={"endpoint": SUB["endpoint"]})).status_code == 410
     assert (await client.get("/api/subscriptions", params={"endpoint": SUB["endpoint"]})).json() == []
 
 

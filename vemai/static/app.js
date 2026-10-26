@@ -190,9 +190,9 @@ async function loadAlerts() {
       ...(alerts.length
         ? alerts.map((a) => {
             const test = el("button", { type: "button", className: "secondary" }, "Testar");
-            test.onclick = () => testAlert(a.id);
+            test.onclick = () => testAlert(a);
             const del = el("button", { type: "button", className: "danger" }, "Excluir");
-            del.onclick = () => deleteAlert(a.id);
+            del.onclick = () => deleteAlert(a);
             return el("li", {},
               el("span", {}, `Linha ${a.line_label} · ${a.time} · ${a.lead_min} min antes`,
                 el("br"), el("span", { className: "muted" }, `${a.operator} · ${a.stop_name}`)),
@@ -205,9 +205,9 @@ async function loadAlerts() {
   }
 }
 
-async function testAlert(id) {
+async function testAlert(alert) {
   try {
-    await api(`/api/subscriptions/${id}/test`, { method: "POST" });
+    await api(`/api/subscriptions/${alert.id}/test?endpoint=${encodeURIComponent(alert.endpoint)}`, { method: "POST" });
     showNotice("Notificação de teste enviada.", "ok");
   } catch (err) {
     showNotice(err.message, "error");
@@ -215,9 +215,9 @@ async function testAlert(id) {
   }
 }
 
-async function deleteAlert(id) {
+async function deleteAlert(alert) {
   try {
-    await api(`/api/subscriptions/${id}`, { method: "DELETE" });
+    await api(`/api/subscriptions/${alert.id}?endpoint=${encodeURIComponent(alert.endpoint)}`, { method: "DELETE" });
     loadAlerts();
   } catch (err) {
     showNotice(err.message, "error");

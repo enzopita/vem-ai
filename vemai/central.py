@@ -154,16 +154,20 @@ def create_app(
     async def list_subscriptions(endpoint: str) -> list[Subscription]:
         return db.list_subscriptions(endpoint)
 
-    @app.delete("/api/subscriptions/{sub_id}", status_code=204)
-    async def delete_subscription(sub_id: int) -> None:
-        if not db.delete_subscription(sub_id):
+    # O endpoint de push só é conhecido pelo navegador que criou o alerta, por isso serve de prova de posse.
+    def owned_subscription(sub_id: int, endpoint: str) -> Subscription:
+        sub = db.get_subscription(sub_id)
+        if sub is None or sub.endpoint != endpoint:
             raise HTTPException(404, "alerta não encontrado")
+        return sub
+
+    @app.delete("/api/subscriptions/{sub_id}", status_code=204)
+    async def delete_subscription(sub_id: int, endpoint: str) -> None:
+        db.delete_subscription(owned_subscription(sub_id, endpoint).id)
 
     @app.post("/api/subscriptions/{sub_id}/test", status_code=204)
-    async def test_subscription(sub_id: int) -> None:
-        sub = db.get_subscription(sub_id)
-        if sub is None:
-            raise HTTPException(404, "alerta não encontrado")
+    async def test_subscription(sub_id: int, endpoint: str) -> None:
+        sub = owned_subscription(sub_id, endpoint)
         try:
             await sender.send(
                 sub, "Vem Aí: teste", f"Alerta da linha {sub.line_label} no ponto {sub.stop_name} funcionando."

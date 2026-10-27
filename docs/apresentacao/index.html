@@ -35,7 +35,8 @@ body { font-family: 'Inter Variable', system-ui, sans-serif; color: var(--ink); 
 .top img { width: 64px; height: 64px; }
 .top .marca { font-size: 40px; font-weight: 700; letter-spacing: -.01em; }
 .top .sec { margin-left: auto; font-size: 26px; font-weight: 600; color: var(--soft); }
-.top .num { font-size: 26px; color: var(--soft); min-width: 80px; text-align: right; }
+.canto { position: absolute; right: 40px; bottom: 28px; z-index: 5; display: flex; gap: 12px; align-items: center; padding: 8px 20px; border-radius: 999px; background: var(--surface); border: 2px solid var(--rule); font-size: 24px; font-weight: 600; color: var(--soft); }
+.canto b { color: var(--ink); }
 
 .body { flex: 1; padding: 64px 96px 72px; display: flex; flex-direction: column; min-height: 0; }
 h1 { font-size: 76px; line-height: 1.08; letter-spacing: -.02em; margin: 0 0 20px; font-weight: 750; }
@@ -174,7 +175,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 <div id="deck">
 
 <!-- 1 -------------------------------------------------------------------- -->
-<section class="slide capa" data-title="Capa">
+<section data-fala="Welber" class="slide capa" data-title="Capa">
   <div class="body">
     <div class="logo"><img src="assets/icon.svg" alt=""><span>Vem Aí</span></div>
     <h1>Seu ônibus avisa quando está chegando.</h1>
@@ -187,8 +188,17 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
   <div class="notes">Abertura. "O Vem Aí é um aplicativo que avisa no seu celular quando o ônibus que você pega todo dia está chegando no ponto. Vamos mostrar o problema, como ele funciona por dentro, e por que ele é um sistema distribuído."</div>
 </section>
 
+<!-- 1b: QR do app ----------------------------------------------------------- -->
+<section data-fala="Welber" class="slide capa" data-title="Teste agora">
+  <div class="body" style="align-items:center;text-align:center">
+    <img src="assets/qr-app.svg" alt="QR code do app" style="width:720px;height:720px;background:#fff;padding:28px;border-radius:32px;border:2px solid var(--rule)">
+    <p style="font-size:64px;font-weight:700;margin:40px 0 0">vemai.enzopita.com</p>
+  </div>
+  <div class="notes">Deixar uns segundos para a turma apontar a câmera. "Abram no celular e acompanhem com a gente."</div>
+</section>
+
 <!-- 2 -------------------------------------------------------------------- -->
-<section class="slide" data-title="O problema">
+<section data-fala="Welber" class="slide" data-title="O problema">
   <div class="body">
     <div class="tag">O problema</div>
     <h2>Esperar ônibus na Baixada ainda é um chute.</h2>
@@ -203,7 +213,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 3 -------------------------------------------------------------------- -->
-<section class="slide" data-title="A ideia">
+<section data-fala="Welber" class="slide" data-title="A ideia">
   <div class="body">
     <div class="tag">A ideia</div>
     <h2>Em vez de você perguntar toda hora,<br><span class="acc">o sistema pergunta por você.</span></h2>
@@ -230,7 +240,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 4 -------------------------------------------------------------------- -->
-<section class="slide" data-title="Como se usa">
+<section data-fala="Luiz" class="slide" data-title="Como se usa">
   <div class="body">
     <div class="tag">Como se usa</div>
     <h2>Configura em três passos. O resto é automático.</h2>
@@ -245,7 +255,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 5 -------------------------------------------------------------------- -->
-<section class="slide" data-title="Sistema distribuído">
+<section data-fala="Christyan" class="slide" data-title="Sistema distribuído">
   <div class="body">
     <div class="tag">Conceito da disciplina</div>
     <h2>O que é um sistema distribuído?</h2>
@@ -265,7 +275,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 6 -------------------------------------------------------------------- -->
-<section class="slide tight" data-title="As peças" id="s-arch">
+<section data-fala="Enzo" class="slide tight" data-title="As peças" id="s-arch">
   <div class="body">
     <div class="tag">Arquitetura</div>
     <h2>As quatro partes do sistema</h2>
@@ -288,7 +298,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 7 -------------------------------------------------------------------- -->
-<section class="slide" data-title="Perguntar aos dois" id="s-scatter">
+<section data-fala="Enzo" class="slide" data-title="Perguntar aos dois" id="s-scatter">
   <div class="body">
     <div class="tag">Por dentro · Buscar um ponto</div>
     <h2>A Central pergunta para os dois <span class="acc">ao mesmo tempo</span></h2>
@@ -330,7 +340,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 8 -------------------------------------------------------------------- -->
-<section class="slide" data-title="Ler o site">
+<section data-fala="Daniele" class="slide" data-title="Ler o site">
   <div class="body">
     <div class="tag">Por dentro · De onde vêm os dados</div>
     <h2>As empresas não entregam os dados prontos. O Coletor “lê” o site.</h2>
@@ -348,7 +358,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 9 -------------------------------------------------------------------- -->
-<section class="slide tight" data-title="Criar alerta">
+<section data-fala="Enzo" class="slide tight" data-title="Criar alerta">
   <div class="body">
     <div class="tag">Por dentro · Criar um alerta</div>
     <h2>Como o servidor acha o seu celular?</h2>
@@ -365,7 +375,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 10 ------------------------------------------------------------------- -->
-<section class="slide" data-title="O vigia">
+<section data-fala="Enzo" class="slide" data-title="O vigia">
   <div class="body">
     <div class="tag">Por dentro · O coração do sistema</div>
     <h2>O Vigia: olha o seu ponto a cada 30 segundos</h2>
@@ -392,7 +402,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 11 ------------------------------------------------------------------- -->
-<section class="slide" data-title="Sumiu">
+<section data-fala="Enzo" class="slide" data-title="Sumiu">
   <div class="body">
     <div class="tag">O diferencial</div>
     <h2>E quando o ônibus <span class="dang">some</span> do rastreamento?</h2>
@@ -408,7 +418,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 12 ------------------------------------------------------------------- -->
-<section class="slide" data-title="Nunca duas vezes">
+<section data-fala="Enzo" class="slide" data-title="Nunca duas vezes">
   <div class="body">
     <div class="tag">Conceito da disciplina · Idempotência</div>
     <h2>Por que o aviso nunca chega repetido</h2>
@@ -427,7 +437,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 13 ------------------------------------------------------------------- -->
-<section class="slide" data-title="Quando algo cai" id="s-falha">
+<section data-fala="Enzo" class="slide" data-title="Quando algo cai" id="s-falha">
   <div class="body">
     <div class="tag">Conceito da disciplina · Tolerância a falhas</div>
     <h2>Se uma empresa sai do ar, o app <span class="okc">continua</span></h2>
@@ -454,7 +464,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 14 ------------------------------------------------------------------- -->
-<section class="slide" data-title="Conceitos">
+<section data-fala="Enzo" class="slide" data-title="Conceitos">
   <div class="body">
     <div class="tag">Para a disciplina</div>
     <h2>Onde cada conceito aparece</h2>
@@ -474,7 +484,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 15 ------------------------------------------------------------------- -->
-<section class="slide" data-title="Tecnologias">
+<section data-fala="Christyan" class="slide" data-title="Tecnologias">
   <div class="body">
     <div class="tag">Ferramentas</div>
     <h2>O que usamos, e por quê</h2>
@@ -491,7 +501,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 16 ------------------------------------------------------------------- -->
-<section class="slide" data-title="Limites">
+<section data-fala="Daniele" class="slide" data-title="Limites">
   <div class="body">
     <div class="tag">Sendo honestos</div>
     <h2>Limitações e próximos passos</h2>
@@ -519,7 +529,7 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
 </section>
 
 <!-- 17 ------------------------------------------------------------------- -->
-<section class="slide capa" data-title="Obrigado">
+<section data-fala="Luiz" class="slide capa" data-title="Obrigado">
   <div class="body">
     <div class="logo" style="margin-bottom:24px"><img src="assets/icon.svg" alt=""><span>Obrigado!</span></div>
     <p class="sub" style="font-size:40px;margin-bottom:56px">Perguntas? Testem no celular agora:</p>
@@ -568,11 +578,42 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
   function render() {
     slides.forEach((s, n) => s.classList.toggle('on', n === i));
     frags(slides[i]).forEach((f, n) => f.classList.toggle('vis', n < step));
-    const num = slides[i].querySelector('.top .num');
     notesEl.textContent = `${i + 1}/${slides.length} · ${slides[i].dataset.title} — ` + (slides[i].querySelector('.notes')?.textContent || '');
     bar.style.width = `${((i + 1) / slides.length) * 100}%`;
     history.replaceState(null, '', `#${i + 1}`);
+    publicar();
   }
+  // Controle remoto (controle.html), quando servido por servidor.py.
+  function publicar() {
+    const s = slides[i];
+    fetch('../remoto', { method: 'POST', body: JSON.stringify({ estado: {
+      n: i + 1, total: slides.length, titulo: s.dataset.title, fala: s.dataset.fala,
+      passo: step, passos: frags(s).length, notas: s.querySelector('.notes')?.textContent.trim() || '',
+    } }) }).catch(() => {});
+  }
+  function irPara(n) { i = Math.max(0, Math.min(slides.length - 1, n - 1)); step = 0; render(); }
+  async function ouvir(cada, status = () => {}) {
+    let desde = -1;
+    for (;;) {
+      try {
+        const r = await fetch(`../remoto?desde=${desde}`, { cache: 'no-store' });
+        if (!r.ok) throw r.status;
+        const { seq, msgs } = await r.json();
+        status(true);
+        msgs.forEach(cada);
+        desde = seq;
+      } catch {
+        status(false);
+        await new Promise(ok => setTimeout(ok, 2000));
+      }
+    }
+  }
+  ouvir(({ cmd, n }) => {
+    if (cmd === 'next') next();
+    else if (cmd === 'prev') prev();
+    else if (cmd === 'ir') irPara(n);
+    else if (cmd === 'onde') publicar();
+  });
   function next() {
     if (step < frags(slides[i]).length) step++;
     else if (i < slides.length - 1) { i++; step = 0; }
@@ -588,8 +629,15 @@ h3 .ic.h { color: var(--accent); margin-right: 6px; }
     if (s.classList.contains('capa')) return;
     const top = document.createElement('div');
     top.className = 'top';
-    top.innerHTML = `<img src="assets/icon.svg" alt=""><span class="marca">Vem Aí</span><span class="sec">${s.dataset.title}</span><span class="num">${n + 1}/${slides.length}</span>`;
+    top.innerHTML = `<img src="assets/icon.svg" alt=""><span class="marca">Vem Aí</span><span class="sec">${s.dataset.title}</span>`;
     s.prepend(top);
+  });
+  // Contador e quem fala, no canto de todo slide.
+  slides.forEach((s, n) => {
+    const c = document.createElement('div');
+    c.className = 'canto';
+    c.innerHTML = `<b>${s.dataset.fala}</b><span>${n + 1}/${slides.length}</span>`;
+    s.append(c);
   });
   addEventListener('keydown', e => {
     if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }

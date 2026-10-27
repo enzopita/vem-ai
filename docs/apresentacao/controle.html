@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<title>Vem Aí · Controle</title>
+<link rel="icon" href="assets/icon.svg">
+<style>
+@font-face { font-family: 'Inter Variable'; font-weight: 100 900; src: url(assets/inter-latin-wght-normal.woff2) format('woff2'); }
+:root { --ground: #0b0d12; --surface: #161a22; --rule: #262c38; --ink: #f4f5f7; --soft: #9aa3b2; --accent: #2f80ed; --ok: #3ccf7a; --danger: #ff6b5e; }
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body { background: var(--ground); color: var(--ink); font-family: 'Inter Variable', system-ui, sans-serif; font-feature-settings: 'tnum';
+  display: flex; flex-direction: column; gap: 14px; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+header { display: flex; align-items: center; gap: 10px; }
+header img { width: 32px; height: 32px; }
+header b { font-size: 18px; }
+#con { margin-left: auto; font-size: 13px; color: var(--soft); display: flex; align-items: center; gap: 6px; }
+#con::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--danger); }
+#con.ok::before { background: var(--ok); }
+.info { background: var(--surface); border: 1px solid var(--rule); border-radius: 18px; padding: 16px 18px; }
+.linha { display: flex; align-items: baseline; gap: 10px; }
+#num { font-size: 40px; font-weight: 800; }
+#total { color: var(--soft); font-size: 20px; }
+#fala { margin-left: auto; font-weight: 700; font-size: 18px; color: var(--accent); }
+#titulo { font-size: 20px; font-weight: 600; margin-top: 4px; }
+#passos { display: flex; gap: 6px; margin-top: 10px; min-height: 8px; }
+#passos i { flex: 1; max-width: 28px; height: 6px; border-radius: 3px; background: var(--rule); }
+#passos i.vis { background: var(--accent); }
+#notas { flex: 1; min-height: 0; overflow-y: auto; font-size: 17px; line-height: 1.5; color: var(--soft); background: var(--surface); border: 1px solid var(--rule); border-radius: 18px; padding: 14px 18px; -webkit-user-select: text; user-select: text; }
+.botoes { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; height: 34vh; min-height: 160px; }
+button { font: inherit; border: 0; border-radius: 22px; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); font-size: 22px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+button svg { width: 44px; height: 44px; }
+#next { background: var(--accent); border-color: var(--accent); }
+button:active { transform: scale(.97); filter: brightness(1.15); }
+select { font: inherit; font-size: 16px; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 14px; }
+</style>
+</head>
+<body>
+<header><img src="assets/icon.svg" alt=""><b>Controle dos slides</b><span id="con">conectando…</span></header>
+<div class="info">
+  <div class="linha"><span id="num">–</span><span id="total"></span><span id="fala"></span></div>
+  <div id="titulo">Abra os slides em outra tela</div>
+  <div id="passos"></div>
+</div>
+<div id="notas"></div>
+<select id="ir" aria-label="Ir para o slide"><option value="">Ir para o slide…</option></select>
+<div class="botoes">
+  <button id="prev" aria-label="Voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Voltar</button>
+  <button id="next" aria-label="Avançar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>Avançar</button>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const enviar = msg => fetch('../remoto', { method: 'POST', body: JSON.stringify(msg) }).catch(() => {});
+  const tocar = cmd => { navigator.vibrate?.(15); enviar({ cmd }); };
+  $('next').onclick = () => tocar('next');
+  $('prev').onclick = () => tocar('prev');
+  $('ir').onchange = e => { if (e.target.value) enviar({ cmd: 'ir', n: +e.target.value }); e.target.value = ''; };
+  let total = 0;
+  function mostrar(s) {
+    $('num').textContent = s.n;
+    $('total').textContent = `/ ${s.total}`;
+    $('fala').textContent = s.fala || '';
+    $('titulo').textContent = s.titulo;
+    $('notas').textContent = s.notas;
+    $('passos').innerHTML = Array.from({ length: s.passos }, (_, k) => `<i class="${k < s.passo ? 'vis' : ''}"></i>`).join('');
+    if (s.total !== total) {
+      total = s.total;
+      const sel = $('ir');
+      sel.length = 1;
+      for (let k = 1; k <= total; k++) sel.add(new Option(`Slide ${k}`, k));
+    }
+  }
+  async function ouvir(cada, status = () => {}) {
+    let desde = -1;
+    for (;;) {
+      try {
+        const r = await fetch(`../remoto?desde=${desde}`, { cache: 'no-store' });
+        if (!r.ok) throw r.status;
+        const { seq, msgs } = await r.json();
+        status(true);
+        msgs.forEach(cada);
+        desde = seq;
+      } catch {
+        status(false);
+        await new Promise(ok => setTimeout(ok, 2000));
+      }
+    }
+  }
+  ouvir(m => m.estado && mostrar(m.estado), ok => {
+    $('con').textContent = ok ? 'conectado' : 'reconectando…';
+    $('con').className = ok ? 'ok' : '';
+  });
+  enviar({ cmd: 'onde' });
+  // Wake Lock: a tela do celular não apaga no meio da apresentação.
+  const acordar = () => navigator.wakeLock?.request('screen').catch(() => {});
+  acordar();
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && acordar());
+})();
+</script>
+</body>
+</html>
